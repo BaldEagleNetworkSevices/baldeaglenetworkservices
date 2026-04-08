@@ -176,6 +176,12 @@ function base_schemas(array $page): array
     $schemas[] = $localBusiness;
     $schemas[] = [
         '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => $config['site_name'],
+        'url' => $config['site_url'],
+    ];
+    $schemas[] = [
+        '@context' => 'https://schema.org',
         '@type' => 'WebPage',
         'name' => $page['title'],
         'url' => $page['canonical'],
