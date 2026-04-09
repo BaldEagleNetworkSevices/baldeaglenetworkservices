@@ -481,9 +481,26 @@ function render_home(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Core Services</span>
-          <h2>Practical support with a security-first operating standard.</h2>
+          <h2>Practical IT support and cybersecurity services for Salt Lake City small businesses.</h2>
         </div>
         <?php render_card_grid($page['core_services']); ?>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">What This Work Changes</span>
+          <h2>Direct operational improvements without MSP theater.</h2>
+        </div>
+        <div class="card-grid">
+          <?php foreach ($page['proof_strip'] as $item): ?>
+            <article class="card">
+              <h3><?= e($item['title']) ?></h3>
+              <p><?= e($item['copy']) ?></p>
+            </article>
+          <?php endforeach; ?>
+        </div>
       </div>
     </section>
 

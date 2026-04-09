@@ -282,10 +282,10 @@ function site_page_definitions(): array
             'nav_key' => 'services',
             'template' => 'home',
             'title' => 'IT Support & Cybersecurity Services in Salt Lake City | Bald Eagle Network Services',
-            'description' => 'IT support and cybersecurity services in Salt Lake City for small businesses that need Microsoft 365 administration, stronger security, and dependable technical support.',
+            'description' => 'IT support and cybersecurity services in Salt Lake City for small businesses. Managed IT, Microsoft 365 administration, backup recovery planning, and security risk reduction.',
             'hero_kicker' => 'Salt Lake Metro IT & Cybersecurity',
-            'hero_title' => 'Tight IT operations for businesses that cannot afford drift, downtime, or weak security.',
-            'hero_intro' => 'Bald Eagle Network Services supports small companies across the Salt Lake metro with disciplined monthly IT support, Microsoft 365 administration, security hardening, and one-off remediation projects.',
+            'hero_title' => 'IT Support and Cybersecurity Services for Small Businesses in Salt Lake City',
+            'hero_intro' => 'Bald Eagle Network Services supports Salt Lake City and Salt Lake metro small businesses with managed IT support, Microsoft 365 administration, backup and recovery planning, security hardening, and focused remediation work.',
             'trust_points' => [
                 'Owner-led businesses with 5 to 20 employees',
                 'Monthly support retainers and focused project work',
@@ -303,21 +303,25 @@ function site_page_definitions(): array
                     'title' => 'Managed IT Services',
                     'copy' => 'Steady support for day-to-day issues, patching, device standards, and infrastructure oversight.',
                     'href' => page_href('managed-it-services'),
+                    'link_label' => 'Review managed IT services',
                 ],
                 [
                     'title' => 'Network Security',
                     'copy' => 'Firewall review, segmentation, remote access control, and corrective work where exposure is too high.',
                     'href' => page_href('network-security'),
+                    'link_label' => 'Review network security services',
                 ],
                 [
                     'title' => 'Microsoft 365 Services',
                     'copy' => 'Tenant administration, identity control, licensing discipline, hardening, and user support.',
                     'href' => page_href('microsoft-365-services'),
+                    'link_label' => 'Review Microsoft 365 services',
                 ],
                 [
                     'title' => 'Backup & Disaster Recovery',
                     'copy' => 'Backup verification, recovery planning, retention review, and restoration testing that can hold up under stress.',
                     'href' => page_href('backup-disaster-recovery'),
+                    'link_label' => 'Review backup and recovery services',
                 ],
                 [
                     'title' => 'Security Risk Assessments',
@@ -342,6 +346,20 @@ function site_page_definitions(): array
                 [
                     'title' => 'Security is not a side note',
                     'copy' => 'Identity, backups, device hygiene, and permissions are reviewed as part of the operating baseline, not an afterthought.',
+                ],
+            ],
+            'proof_strip' => [
+                [
+                    'title' => 'Less recurring support friction',
+                    'copy' => 'Reduce repeat user issues by tightening day-to-day support, device standards, and operational follow-through.',
+                ],
+                [
+                    'title' => 'Cleaner Microsoft 365 control',
+                    'copy' => 'Improve tenant administration, identity controls, and cleanup work before drift turns into a larger security problem.',
+                ],
+                [
+                    'title' => 'Clearer backup and recovery priorities',
+                    'copy' => 'Identify backup gaps, recovery weak points, and the remediation work needed before downtime becomes business disruption.',
                 ],
             ],
             'engagements' => [
@@ -370,7 +388,7 @@ function site_page_definitions(): array
             ],
             'm365' => [
                 'title' => 'Microsoft 365 is a core operational system, not a side tool.',
-                'copy' => 'Licensing, identity, conditional access, mail security, and SharePoint permissions need administrative discipline. Weak tenant hygiene becomes both a security problem and a productivity problem.',
+                'copy' => 'Licensing, identity, conditional access, mail security, and SharePoint permissions need administrative discipline for Salt Lake City small businesses. Weak tenant hygiene becomes both a security problem and a productivity problem.',
                 'points' => [
                     'Tenant administration and cleanup',
                     'Identity, MFA, and access policy review',
@@ -380,7 +398,7 @@ function site_page_definitions(): array
             ],
             'service_area' => [
                 'title' => 'Local coverage limited to the Salt Lake metro.',
-                'copy' => 'Bald Eagle works within a 30-mile radius so on-site visits stay realistic, project windows stay tight, and support decisions stay local.',
+                'copy' => 'Bald Eagle works within a 30-mile radius of Salt Lake City so on-site visits stay realistic, project windows stay tight, and support decisions stay local.',
                 'points' => [
                     'Salt Lake City and nearby commercial corridors',
                     'Reasonable travel windows for on-site work',
@@ -414,7 +432,7 @@ function site_page_definitions(): array
             ],
             'final_cta' => [
                 'title' => 'If your IT environment feels unstable, overexposed, or overdue for cleanup, start here.',
-                'copy' => 'Use the form to outline the issue, your company size, and what outcome you need. Bald Eagle will reply with a concrete next step.',
+                'copy' => 'Use the form to outline the issue, your company size, and whether you need monthly support or focused project work. Bald Eagle replies directly on best fit, typically for Salt Lake City small businesses with 5 to 20 employees.',
             ],
         ],
         'it-services-salt-lake-city' => [
