@@ -144,6 +144,42 @@ function normalize_page(array $page): array
     return $page;
 }
 
+function page_backing_file_path(string $slug, string $path): ?string
+{
+    if ($slug === 'home' || $path === '/') {
+        $candidate = dirname(__DIR__) . '/index.php';
+        return is_file($candidate) ? $candidate : null;
+    }
+
+    if (!preg_match('/^\/[a-z0-9\-]+\.php$/i', $path)) {
+        return null;
+    }
+
+    $candidate = dirname(__DIR__) . $path;
+    return is_file($candidate) ? $candidate : null;
+}
+
+function page_lastmod_iso8601(string $slug, string $path): string
+{
+    $fallback = 0;
+    foreach ([
+        dirname(__DIR__) . '/includes/page-definitions.php',
+        dirname(__DIR__) . '/includes/functions.php',
+        dirname(__DIR__) . '/includes/header.php',
+        dirname(__DIR__) . '/includes/footer.php',
+        dirname(__DIR__) . '/sitemap.xml',
+    ] as $sharedFile) {
+        $fallback = max($fallback, (int) @filemtime($sharedFile));
+    }
+
+    $backingFile = page_backing_file_path($slug, $path);
+    if ($backingFile !== null) {
+        $fallback = max($fallback, (int) @filemtime($backingFile));
+    }
+
+    return gmdate('c', $fallback);
+}
+
 function base_schemas(array $page): array
 {
     $config = site_config();
@@ -176,6 +212,12 @@ function base_schemas(array $page): array
     $schemas[] = $localBusiness;
     $schemas[] = [
         '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => $config['site_name'],
+        'url' => $config['site_url'],
+    ];
+    $schemas[] = [
+        '@context' => 'https://schema.org',
         '@type' => 'WebPage',
         'name' => $page['title'],
         'url' => $page['canonical'],
@@ -186,6 +228,27 @@ function base_schemas(array $page): array
             'url' => $config['site_url'],
         ],
     ];
+
+    if (($page['slug'] ?? '') !== 'home') {
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => absolute_url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => $page['title'],
+                    'item' => $page['canonical'],
+                ],
+            ],
+        ];
+    }
 
     if (!empty($page['faq_items'])) {
         $schemas[] = [
@@ -424,9 +487,26 @@ function render_home(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Core Services</span>
-          <h2>Practical support with a security-first operating standard.</h2>
+          <h2>Practical IT support and cybersecurity services for Salt Lake City small businesses.</h2>
         </div>
         <?php render_card_grid($page['core_services']); ?>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">What This Work Changes</span>
+          <h2>Direct operational improvements without MSP theater.</h2>
+        </div>
+        <div class="card-grid">
+          <?php foreach ($page['proof_strip'] as $item): ?>
+            <article class="card">
+              <h3><?= e($item['title']) ?></h3>
+              <p><?= e($item['copy']) ?></p>
+            </article>
+          <?php endforeach; ?>
+        </div>
       </div>
     </section>
 

@@ -10,6 +10,14 @@ ErrorDocument 404 /404.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://baldeaglenetworkservices.com%{REQUEST_URI} [R=301,L]
+  RewriteCond %{HTTP_HOST} !^baldeaglenetworkservices\.com$ [NC]
+  RewriteRule ^ https://baldeaglenetworkservices.com%{REQUEST_URI} [R=301,L]
+
+  RewriteRule ^test\.php$ - [G,L,NC]
+  RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
+  RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
 </IfModule>
 
 <Files "robots.txt">
