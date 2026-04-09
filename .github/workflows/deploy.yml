@@ -1,0 +1,45 @@
+name: Deploy Network Site
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync files to staging directory
+        run: |
+          rsync -az --delete \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            --exclude "deploy/" \
+            --exclude "docs/" \
+            --exclude "app/" \
+            --exclude "systemd/" \
+            --exclude "storage/" \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_TARGET }}/"
+
+      - name: Run server deploy script
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            'sudo /usr/local/bin/deploy-network-site.sh'
+
+      - name: Smoke test homepage
+        run: |
+          curl -fI https://baldeaglenetworkservices.com/
+          curl -fI https://baldeaglenetworkservices.com/robots.txt
+          curl -fI https://baldeaglenetworkservices.com/sitemap.xml
