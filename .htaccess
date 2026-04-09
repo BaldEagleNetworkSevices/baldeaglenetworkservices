@@ -15,15 +15,9 @@ ErrorDocument 404 /404.php
   RewriteCond %{HTTP_HOST} !^baldeaglenetworkservices\.com$ [NC]
   RewriteRule ^ https://baldeaglenetworkservices.com%{REQUEST_URI} [R=301,L]
 
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
   RewriteRule ^test\.php$ - [G,L,NC]
   RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
   RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
 </IfModule>
-
-<Files "robots.txt">
-  SetHandler application/x-httpd-php
-</Files>
-
-<Files "sitemap.xml">
-  SetHandler application/x-httpd-php
-</Files>
