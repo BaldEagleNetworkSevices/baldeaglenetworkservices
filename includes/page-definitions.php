@@ -928,10 +928,10 @@ function site_page_definitions(): array
                 'Local SEO pages reflect actual service coverage rather than aspirational territory',
             ],
             'local_cards' => [
-                ['title' => 'Monthly IT Support', 'copy' => 'For local teams that need continuous support, endpoint control, and a consistent operating standard.'],
-                ['title' => 'Microsoft 365 Administration', 'copy' => 'For businesses that need their tenant cleaned up, secured, and kept in working order.'],
-                ['title' => 'Security Assessments', 'copy' => 'For owners who need to understand where risk is building before it turns into an incident.'],
-                ['title' => 'Focused Projects', 'copy' => 'For Wi-Fi issues, tenant migrations, backup corrections, or defined infrastructure work.'],
+                ['title' => 'Monthly IT Support', 'copy' => 'For local teams that need continuous support, endpoint control, and a consistent operating standard.', 'href' => page_href('managed-it-support-salt-lake-city')],
+                ['title' => 'Microsoft 365 Administration', 'copy' => 'For businesses that need their tenant cleaned up, secured, and kept in working order.', 'href' => page_href('microsoft-365-services')],
+                ['title' => 'Security Assessments', 'copy' => 'For owners who need to understand where risk is building before it turns into an incident.', 'href' => page_href('security-risk-assessments')],
+                ['title' => 'Focused Projects', 'copy' => 'For Wi-Fi issues, tenant migrations, backup corrections, or defined infrastructure work.', 'href' => page_href('one-off-it-projects')],
             ],
         ],
         'services' => [

@@ -161,10 +161,16 @@ function page_backing_file_path(string $slug, string $path): ?string
 
 function page_lastmod_iso8601(string $slug, string $path): string
 {
-    $fallback = max(
-        (int) @filemtime(dirname(__DIR__) . '/includes/page-definitions.php'),
-        (int) @filemtime(dirname(__DIR__) . '/sitemap.xml')
-    );
+    $fallback = 0;
+    foreach ([
+        dirname(__DIR__) . '/includes/page-definitions.php',
+        dirname(__DIR__) . '/includes/functions.php',
+        dirname(__DIR__) . '/includes/header.php',
+        dirname(__DIR__) . '/includes/footer.php',
+        dirname(__DIR__) . '/sitemap.xml',
+    ] as $sharedFile) {
+        $fallback = max($fallback, (int) @filemtime($sharedFile));
+    }
 
     $backingFile = page_backing_file_path($slug, $path);
     if ($backingFile !== null) {

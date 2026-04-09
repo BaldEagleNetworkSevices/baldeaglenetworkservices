@@ -35,12 +35,7 @@ if (!function_exists('site_config')) {
 
     function ben_base_url(): string
     {
-        $configured = ben_env('SITE_URL');
-        if ($configured !== null) {
-            return rtrim($configured, '/');
-        }
-
-        return ben_scheme() . '://' . ben_host();
+        return rtrim(ben_env('SITE_URL', 'https://baldeaglenetworkservices.com') ?? 'https://baldeaglenetworkservices.com', '/');
     }
 
     function ben_env_bool(string $key, bool $default = false): bool
