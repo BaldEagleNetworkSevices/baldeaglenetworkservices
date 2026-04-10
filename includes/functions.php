@@ -33,30 +33,30 @@ function page_catalog(): array
 
     $pages = [
         'home' => ['path' => '/', 'label' => 'Home'],
-        'services' => ['path' => '/services.php', 'label' => 'Services'],
-        'plans' => ['path' => '/monthly-it-support-plans.php', 'label' => 'Plans'],
-        'projects' => ['path' => '/one-off-it-projects.php', 'label' => 'Projects'],
-        'about' => ['path' => '/about.php', 'label' => 'About'],
-        'service-area' => ['path' => '/service-area.php', 'label' => 'Service Area'],
-        'contact' => ['path' => '/contact.php', 'label' => 'Contact'],
-        'faq' => ['path' => '/faq.php', 'label' => 'FAQ'],
-        'privacy-policy' => ['path' => '/privacy-policy.php', 'label' => 'Privacy Policy'],
-        'terms' => ['path' => '/terms.php', 'label' => 'Terms'],
-        'managed-it-services' => ['path' => '/managed-it-services.php', 'label' => 'Managed IT Services'],
-        'network-security' => ['path' => '/network-security.php', 'label' => 'Network Security'],
-        'microsoft-365-services' => ['path' => '/microsoft-365-services.php', 'label' => 'Microsoft 365 Services'],
-        'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery.php', 'label' => 'Backup & Disaster Recovery'],
-        'network-cabling-wifi' => ['path' => '/network-cabling-wifi.php', 'label' => 'Network Cabling & Wi-Fi'],
-        'voip-business-phone-systems' => ['path' => '/voip-business-phone-systems.php', 'label' => 'VoIP Business Phone Systems'],
-        'security-risk-assessments' => ['path' => '/security-risk-assessments.php', 'label' => 'Security Risk Assessments'],
-        'compliance-readiness' => ['path' => '/compliance-readiness.php', 'label' => 'Compliance Readiness'],
-        'endpoint-management' => ['path' => '/endpoint-management.php', 'label' => 'Endpoint Management'],
-        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans.php', 'label' => 'Monthly IT Support Plans'],
-        'one-off-it-projects' => ['path' => '/one-off-it-projects.php', 'label' => 'One-Off IT Projects'],
-        'it-services-salt-lake-city' => ['path' => '/it-services-salt-lake-city.php', 'label' => 'IT Services Salt Lake City'],
-        'managed-it-support-salt-lake-city' => ['path' => '/managed-it-support-salt-lake-city.php', 'label' => 'Managed IT Support Salt Lake City'],
-        'microsoft-365-support-salt-lake-city' => ['path' => '/microsoft-365-support-salt-lake-city.php', 'label' => 'Microsoft 365 Support Salt Lake City'],
-        'cybersecurity-salt-lake-city' => ['path' => '/cybersecurity-salt-lake-city.php', 'label' => 'Cybersecurity Salt Lake City'],
+        'services' => ['path' => '/services', 'label' => 'Services'],
+        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Plans'],
+        'projects' => ['path' => '/one-off-it-projects', 'label' => 'Projects'],
+        'about' => ['path' => '/about', 'label' => 'About'],
+        'service-area' => ['path' => '/service-area', 'label' => 'Service Area'],
+        'contact' => ['path' => '/contact', 'label' => 'Contact'],
+        'faq' => ['path' => '/faq', 'label' => 'FAQ'],
+        'privacy-policy' => ['path' => '/privacy-policy', 'label' => 'Privacy Policy'],
+        'terms' => ['path' => '/terms', 'label' => 'Terms'],
+        'managed-it-services' => ['path' => '/managed-it-services', 'label' => 'Managed IT Services'],
+        'network-security' => ['path' => '/network-security', 'label' => 'Network Security'],
+        'microsoft-365-services' => ['path' => '/microsoft-365-services', 'label' => 'Microsoft 365 Services'],
+        'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery', 'label' => 'Backup & Disaster Recovery'],
+        'network-cabling-wifi' => ['path' => '/network-cabling-wifi', 'label' => 'Network Cabling & Wi-Fi'],
+        'voip-business-phone-systems' => ['path' => '/voip-business-phone-systems', 'label' => 'VoIP Business Phone Systems'],
+        'security-risk-assessments' => ['path' => '/security-risk-assessments', 'label' => 'Security Risk Assessments'],
+        'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Compliance Readiness'],
+        'endpoint-management' => ['path' => '/endpoint-management', 'label' => 'Endpoint Management'],
+        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly IT Support Plans'],
+        'one-off-it-projects' => ['path' => '/one-off-it-projects', 'label' => 'One-Off IT Projects'],
+        'it-services-salt-lake-city' => ['path' => '/it-services-salt-lake-city', 'label' => 'IT Services Salt Lake City'],
+        'managed-it-support-salt-lake-city' => ['path' => '/managed-it-support-salt-lake-city', 'label' => 'Managed IT Support Salt Lake City'],
+        'microsoft-365-support-salt-lake-city' => ['path' => '/microsoft-365-support-salt-lake-city', 'label' => 'Microsoft 365 Support Salt Lake City'],
+        'cybersecurity-salt-lake-city' => ['path' => '/cybersecurity-salt-lake-city', 'label' => 'Cybersecurity Salt Lake City'],
     ];
 
     return $pages;
@@ -151,12 +151,22 @@ function page_backing_file_path(string $slug, string $path): ?string
         return is_file($candidate) ? $candidate : null;
     }
 
-    if (!preg_match('/^\/[a-z0-9\-]+\.php$/i', $path)) {
-        return null;
+    $cleanPath = '/' . trim($path, '/');
+    $candidates = [];
+
+    if (preg_match('/\.php$/i', $cleanPath)) {
+        $candidates[] = dirname(__DIR__) . $cleanPath;
+    } elseif (preg_match('/^\/[a-z0-9\-]+$/i', $cleanPath)) {
+        $candidates[] = dirname(__DIR__) . $cleanPath . '.php';
     }
 
-    $candidate = dirname(__DIR__) . $path;
-    return is_file($candidate) ? $candidate : null;
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return null;
 }
 
 function page_lastmod_iso8601(string $slug, string $path): string
@@ -269,11 +279,12 @@ function base_schemas(array $page): array
     }
 
     if (in_array($page['template'] ?? '', ['service', 'local', 'commercial'], true)) {
+        $serviceName = $page['schema_name'] ?? preg_replace('/ \| .+$/', '', $page['title']);
         $schemas[] = [
             '@context' => 'https://schema.org',
             '@type' => 'Service',
-            'name' => $page['schema_name'] ?? $page['hero_title'] ?? $page['title'],
-            'serviceType' => $page['schema_service_type'] ?? ($page['hero_title'] ?? $page['title']),
+            'name' => $serviceName,
+            'serviceType' => $page['schema_service_type'] ?? $serviceName,
             'provider' => [
                 '@type' => 'LocalBusiness',
                 'name' => $config['site_name'],
@@ -332,10 +343,12 @@ function service_cards(array $slugs): array
     $content = [];
     foreach ($slugs as $slug) {
         $page = page_definition($slug);
+        $title = $page['card_title'] ?? $page['hero_title'] ?? preg_replace('/ \| .+$/', '', $page['title']);
         $content[] = [
-            'title' => $page['card_title'] ?? $page['hero_title'] ?? $page['title'],
+            'title' => $title,
             'copy' => $page['card_copy'] ?? $page['description'],
             'href' => page_href($slug),
+            'link_label' => $page['card_link_label'] ?? 'See ' . $title,
         ];
     }
 
@@ -433,7 +446,7 @@ function render_card_grid(array $items, string $modifier = ''): void
         if (!empty($item['href']) && !empty($item['link_label'])) {
             echo '<a class="text-link" href="' . e($item['href']) . '">' . e($item['link_label']) . '</a>';
         } elseif (!empty($item['href'])) {
-            echo '<a class="text-link" href="' . e($item['href']) . '">Review service</a>';
+            echo '<a class="text-link" href="' . e($item['href']) . '">Review ' . e($item['title']) . '</a>';
         }
         echo '</article>';
     }
@@ -461,7 +474,6 @@ function render_home(array $page): void
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
             <a class="button button--primary" href="<?= e(page_href('contact')) ?>">Book IT &amp; Security Review</a>
-            <a class="button button--ghost" href="<?= e(page_href('services')) ?>">Review Services</a>
           </div>
         </div>
         <aside class="hero__panel">
@@ -490,6 +502,7 @@ function render_home(array $page): void
           <h2>Practical IT support and cybersecurity services for Salt Lake City small businesses.</h2>
         </div>
         <?php render_card_grid($page['core_services']); ?>
+        <p><a class="text-link" href="<?= e(page_href('services')) ?>">Review the full service overview</a></p>
       </div>
     </section>
 
@@ -629,9 +642,6 @@ function render_service_like_page(array $page): void
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
             <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>">Book IT &amp; Security Review</a>
-            <?php if (!empty($page['secondary_cta'])): ?>
-              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
-            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -650,6 +660,9 @@ function render_service_like_page(array $page): void
           <?php render_feature_list($page['included']); ?>
         </article>
       </div>
+      <?php if (!empty($page['secondary_cta'])): ?>
+        <p><a class="text-link" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a></p>
+      <?php endif; ?>
     </section>
 
     <section class="section section--alt">
@@ -692,6 +705,7 @@ function render_service_like_page(array $page): void
           <h2>Related pages for the next decision.</h2>
         </div>
         <?php render_card_grid(service_cards($page['related_links']), 'card-grid--compact'); ?>
+        <p>Also review <a class="text-link" href="<?= e(page_href('faq')) ?>">the FAQ</a>, <a class="text-link" href="<?= e(page_href('about')) ?>">about Bald Eagle</a>, and <a class="text-link" href="<?= e(page_href('service-area')) ?>">the Salt Lake service area</a>.</p>
       </div>
     </section>
     <?php
@@ -943,6 +957,9 @@ function render_not_found_page(array $page): void
 function render_site_page(array $page): void
 {
     $page = normalize_page($page);
+    if (($page['template'] ?? '') === '404') {
+        http_response_code(404);
+    }
     include __DIR__ . '/header.php';
 
     echo '<main id="main-content" class="site-main">';
@@ -974,7 +991,6 @@ function render_site_page(array $page): void
             render_legal_page($page);
             break;
         case '404':
-            http_response_code(404);
             render_not_found_page($page);
             break;
         default:

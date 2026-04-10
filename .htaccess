@@ -10,14 +10,33 @@ ErrorDocument 404 /404.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteCond %{HTTPS} !=on
-  RewriteRule ^ https://baldeaglenetworkservices.com%{REQUEST_URI} [R=301,L]
+  RewriteRule ^test\.php$ - [G,L,NC]
+  RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
+  RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
+
+  RewriteCond %{THE_REQUEST} \s/+index\.php(?:[?\s]|$) [NC]
+  RewriteRule ^index\.php$ https://baldeaglenetworkservices.com/ [R=301,L]
+
+  RewriteCond %{THE_REQUEST} \s/+sitemap\.php(?:[?\s]|$) [NC]
+  RewriteRule ^sitemap\.php$ https://baldeaglenetworkservices.com/sitemap.xml [R=301,L]
+
+  RewriteCond %{THE_REQUEST} \s/+robots\.php(?:[?\s]|$) [NC]
+  RewriteRule ^robots\.php$ https://baldeaglenetworkservices.com/robots.txt [R=301,L]
+
+  RewriteCond %{THE_REQUEST} \s/+([A-Za-z0-9-]+)\.php(?:[?\s]|$) [NC]
+  RewriteCond %1 !^404$ [NC]
+  RewriteRule ^([A-Za-z0-9-]+)\.php$ https://baldeaglenetworkservices.com/$1 [R=301,L]
+
+  RewriteCond %{THE_REQUEST} \s/+([A-Za-z0-9-]+)/+(?:[?\s]|$) [NC]
+  RewriteRule ^([A-Za-z0-9-]+)/+$ https://baldeaglenetworkservices.com/$1 [R=301,L]
+
+  RewriteCond %{HTTPS} !=on [OR]
   RewriteCond %{HTTP_HOST} !^baldeaglenetworkservices\.com$ [NC]
   RewriteRule ^ https://baldeaglenetworkservices.com%{REQUEST_URI} [R=301,L]
 
   RewriteRule ^sitemap\.xml$ sitemap.php [L]
-
-  RewriteRule ^test\.php$ - [G,L,NC]
-  RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
-  RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.php -f
+  RewriteRule ^([A-Za-z0-9-]+)/?$ $1.php [L]
 </IfModule>
