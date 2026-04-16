@@ -115,6 +115,14 @@ if (!function_exists('site_config')) {
             return true;
         }
 
+        if (in_array($appEnv, ['production', 'prod', 'staging', 'stage'], true)) {
+            return false;
+        }
+
+        if (PHP_SAPI === 'cli') {
+            return true;
+        }
+
         $host = strtolower(ben_host());
         $host = preg_replace('/:\d+$/', '', $host) ?? $host;
 
