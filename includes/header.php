@@ -5,7 +5,7 @@ ensure_session_started();
 
 $page = normalize_page($page ?? []);
 $config = site_config();
-$ogImage = $page['og_image'] ?? absolute_url('/assets/img/og-default.jpg');
+$ogImage = $page['og_image'] ?? absolute_url(asset_path('img/og-default.jpg'));
 $navItems = [
     'services' => 'Services',
     'plans' => 'Plans',
@@ -37,8 +37,11 @@ $navItems = [
   <meta name="twitter:title" content="<?= e($page['title']) ?>">
   <meta name="twitter:description" content="<?= e($page['description']) ?>">
   <meta name="twitter:image" content="<?= e($ogImage) ?>">
-  <link rel="icon" href="<?= e(absolute_url('/favicon.svg')) ?>" type="image/svg+xml">
+  <link rel="icon" href="<?= e('/favicon.svg') ?>" type="image/svg+xml">
   <link rel="stylesheet" href="<?= e(asset_url('css/baldeagle.css')) ?>">
+  <?php if (!empty($page['extra_head']) && is_string($page['extra_head'])): ?>
+    <?= $page['extra_head'] . PHP_EOL ?>
+  <?php endif; ?>
   <?php render_schemas($page); ?>
 </head>
 <body class="<?= e($page['body_class']) ?>">

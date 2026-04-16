@@ -52,6 +52,8 @@ storage/*.cache
 # Local-only project helpers
 CODEX_FIXES_BRIEF.md
 verify-contact-flow.sh
+.config/
+*.test.php
 
 # Test artifacts
 git-push-test.txt

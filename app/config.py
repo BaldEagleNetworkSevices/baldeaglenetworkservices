@@ -17,6 +17,8 @@ class DatabaseConfig:
 @dataclass(frozen=True)
 class IntakeAPIConfig:
     database: DatabaseConfig
+    host: str
+    port: int
     log_level: str
 
 
@@ -25,6 +27,7 @@ class CRMConfig:
     base: str
     user: str
     password: str
+    assigned_user_id: str
 
     @property
     def rest_url(self) -> str:
@@ -58,6 +61,8 @@ def load_database_config() -> DatabaseConfig:
 def load_intake_api_config() -> IntakeAPIConfig:
     return IntakeAPIConfig(
         database=load_database_config(),
+        host=os.getenv("INTAKE_API_HOST", "127.0.0.1"),
+        port=int(os.getenv("INTAKE_API_PORT", "5000")),
         log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
     )
 
@@ -69,5 +74,6 @@ def load_worker_config() -> WorkerConfig:
             base=get_env("CRM_BASE"),
             user=get_env("CRM_USER"),
             password=get_env("CRM_PASS"),
+            assigned_user_id=os.getenv("SUITECRM_ASSIGNED_USER_ID", "").strip(),
         ),
     )

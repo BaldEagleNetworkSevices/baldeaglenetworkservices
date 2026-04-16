@@ -152,6 +152,15 @@
           return;
         }
 
+        if (data.payment_required && typeof data.payment_url === 'string' && data.payment_url !== '') {
+          if (button) {
+            button.disabled = false;
+            button.textContent = button.dataset.originalLabel || 'Submit';
+          }
+          window.location.assign(data.payment_url);
+          return;
+        }
+
         form.reset();
         if (status) {
           status.classList.add('is-success');

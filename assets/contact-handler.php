@@ -17,6 +17,9 @@ function respond_form(int $status, array $payload, ?string $redirect = null): ne
         http_response_code($status);
         header('Content-Type: application/json; charset=UTF-8');
         header('Cache-Control: no-store, max-age=0');
+        if (function_exists('ben_is_local_development') && ben_is_local_development() && isset($payload['debug_reason']) && is_string($payload['debug_reason']) && $payload['debug_reason'] !== '') {
+            header('X-Contact-Debug-Reason: ' . $payload['debug_reason']);
+        }
         echo json_encode($payload, JSON_UNESCAPED_SLASHES);
         exit;
     }
@@ -231,11 +234,16 @@ if (!$crmResult['success']) {
         : 'Your request was saved, but the CRM handoff did not complete. Bald Eagle will review it manually.';
 
     $status = site_config()['crm_required'] ? 502 : 202;
-    respond_form($status, [
+    $response = [
         'success' => false,
         'message' => $message,
         'crm_status' => 'failed',
-    ]);
+    ];
+    if (function_exists('ben_is_local_development') && ben_is_local_development()) {
+        $response['debug_reason'] = (string) ($crmResult['reason'] ?? 'crm_handoff_failed');
+        $response['crm_target'] = (string) ($crmResult['target'] ?? '');
+    }
+    respond_form($status, $response);
 }
 
 notify_submission($payload);

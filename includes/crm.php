@@ -50,6 +50,7 @@ if (!function_exists('crm_mode')) {
             'event' => $event,
             'mode' => crm_mode(),
             'target' => crm_target_label(),
+            'config_source' => site_config()['config_source'] ?? '',
         ];
 
         foreach ($context as $key => $value) {
@@ -125,6 +126,45 @@ if (!function_exists('crm_mode')) {
         ];
     }
 
+    function crm_payload_name_parts(array $payload): array
+    {
+        $crmFields = is_array($payload['crm_fields'] ?? null) ? $payload['crm_fields'] : [];
+        $firstName = trim((string) ($crmFields['first_name'] ?? ''));
+        $lastName = trim((string) ($crmFields['last_name'] ?? ''));
+
+        if ($firstName !== '' || $lastName !== '') {
+            return [
+                'first_name' => $firstName,
+                'last_name' => $lastName !== '' ? $lastName : (trim((string) ($payload['company'] ?? '')) ?: 'Unknown'),
+            ];
+        }
+
+        $names = crm_name_parts((string) ($payload['name'] ?? ''));
+        if (trim((string) ($names['last_name'] ?? '')) === '' || (string) ($names['last_name'] ?? '') === 'Website Lead') {
+            $names['last_name'] = trim((string) ($payload['company'] ?? '')) ?: 'Unknown';
+        }
+
+        return $names;
+    }
+
+    function crm_structured_fields(array $payload): array
+    {
+        $crmFields = is_array($payload['crm_fields'] ?? null) ? $payload['crm_fields'] : [];
+        $result = [];
+
+        foreach ($crmFields as $field => $value) {
+            if (!is_string($field) || $field === '') {
+                continue;
+            }
+
+            if (is_scalar($value) || $value === null) {
+                $result[$field] = $value === null ? '' : (string) $value;
+            }
+        }
+
+        return $result;
+    }
+
     function crm_http_post_form(string $url, array $fields): array
     {
         if (function_exists('curl_init')) {
@@ -145,7 +185,9 @@ if (!function_exists('crm_mode')) {
             $body = curl_exec($ch);
             $error = curl_error($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-            curl_close($ch);
+            if (PHP_VERSION_ID < 80500) {
+                curl_close($ch);
+            }
 
             if ($body === false) {
                 return ['success' => false, 'error' => $error !== '' ? $error : 'HTTP request failed.'];
@@ -219,7 +261,9 @@ if (!function_exists('crm_mode')) {
             $responseBody = curl_exec($ch);
             $error = curl_error($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-            curl_close($ch);
+            if (PHP_VERSION_ID < 80500) {
+                curl_close($ch);
+            }
 
             if ($responseBody === false) {
                 return ['success' => false, 'error' => $error !== '' ? $error : 'HTTP request failed.'];
@@ -275,6 +319,208 @@ if (!function_exists('crm_mode')) {
         ]);
     }
 
+    function suitecrm_legacy_login_session(): array
+    {
+        $config = site_config();
+        if (
+            $config['suitecrm_endpoint'] === '' ||
+            $config['suitecrm_username'] === '' ||
+            $config['suitecrm_password'] === ''
+        ) {
+            return crm_failure('SuiteCRM credentials are not configured.');
+        }
+
+        $login = suitecrm_legacy_call('login', [
+            'user_auth' => [
+                'user_name' => $config['suitecrm_username'],
+                'password' => md5($config['suitecrm_password']),
+                'version' => '1',
+            ],
+            'application_name' => $config['site_name'],
+            'name_value_list' => [],
+        ]);
+
+        if (!$login['success']) {
+            return crm_failure('CRM login request failed.', [
+                'http_status' => $login['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($login['body'] ?? null),
+                'reason' => $login['error'] ?? 'SuiteCRM login request failed.',
+            ]);
+        }
+
+        $loginData = json_decode((string) ($login['body'] ?? ''), true);
+        $sessionId = is_array($loginData) ? (string) ($loginData['id'] ?? '') : '';
+        if ($sessionId === '') {
+            return crm_failure('CRM login failed.', [
+                'http_status' => $login['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($login['body'] ?? null),
+                'reason' => 'SuiteCRM login did not return a session id.',
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'session_id' => $sessionId,
+            'http_status' => $login['status'] ?? 0,
+        ];
+    }
+
+    function suitecrm_escape_query_value(string $value): string
+    {
+        return str_replace(["\\", "'"], ["\\\\", "\\'"], $value);
+    }
+
+    function suitecrm_find_lead_id_by_request_id(string $sessionId, string $requestId): array
+    {
+        $query = "leads.request_id_c = '" . suitecrm_escape_query_value($requestId) . "'";
+
+        $result = suitecrm_legacy_call('get_entry_list', [
+            'session' => $sessionId,
+            'module_name' => 'Leads',
+            'query' => $query,
+            'order_by' => 'date_entered DESC',
+            'offset' => 0,
+            'select_fields' => ['id', 'request_id_c'],
+            'link_name_to_fields_array' => [],
+            'max_results' => 1,
+            'deleted' => 0,
+            'Favorites' => false,
+        ]);
+
+        if (!$result['success']) {
+            return crm_failure('CRM lookup request failed.', [
+                'http_status' => $result['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($result['body'] ?? null),
+                'reason' => $result['error'] ?? 'SuiteCRM lead lookup failed.',
+            ]);
+        }
+
+        $decoded = json_decode((string) ($result['body'] ?? ''), true);
+        $entries = is_array($decoded['entry_list'] ?? null) ? $decoded['entry_list'] : [];
+        $first = is_array($entries[0] ?? null) ? $entries[0] : [];
+        $leadId = (string) ($first['id'] ?? '');
+
+        if ($leadId === '') {
+            return crm_failure('CRM lead lookup returned no matching lead.', [
+                'http_status' => $result['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($result['body'] ?? null),
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'lead_id' => $leadId,
+            'http_status' => $result['status'] ?? 0,
+        ];
+    }
+
+    function update_crm_lead_payment(array $payload): array
+    {
+        $requestId = trim((string) ($payload['request_id'] ?? ''));
+        if ($requestId === '') {
+            return crm_failure('CRM payment update requires request_id.');
+        }
+
+        $leadRef = substr(hash('sha256', 'payment|' . $requestId), 0, 16);
+        crm_log('crm_payment_attempt', [
+            'request_id' => $requestId,
+            'lead_ref' => $leadRef,
+            'result' => 'started',
+            'module' => 'Leads',
+            'methods' => ['login', 'get_entry_list', 'set_entry'],
+            'fields' => [
+                'payment_status_c' => (string) ($payload['payment_status'] ?? ''),
+                'payment_reference_c' => (string) ($payload['payment_reference'] ?? ''),
+                'payment_amount_c' => (string) ($payload['amount'] ?? ''),
+                'payment_currency_c' => (string) ($payload['currency'] ?? ''),
+                'delivery_tier_c' => (string) ($payload['delivery_tier'] ?? ''),
+                'product_code_c' => (string) ($payload['product_code'] ?? ''),
+            ],
+        ]);
+
+        $login = suitecrm_legacy_login_session();
+        if (!$login['success']) {
+            crm_log('crm_payment_result', [
+                'request_id' => $requestId,
+                'lead_ref' => $leadRef,
+                'result' => 'failed',
+                'method' => 'login',
+                'module' => 'Leads',
+                'reason' => $login['reason'] ?? 'CRM login failed.',
+                'http_status' => $login['http_status'] ?? 0,
+                'response_excerpt' => $login['response_excerpt'] ?? '',
+            ]);
+            return $login;
+        }
+
+        $lookup = suitecrm_find_lead_id_by_request_id((string) $login['session_id'], $requestId);
+        if (!$lookup['success']) {
+            crm_log('crm_payment_result', [
+                'request_id' => $requestId,
+                'lead_ref' => $leadRef,
+                'result' => 'failed',
+                'method' => 'get_entry_list',
+                'module' => 'Leads',
+                'reason' => $lookup['reason'] ?? 'CRM lead lookup failed.',
+                'http_status' => $lookup['http_status'] ?? 0,
+                'response_excerpt' => $lookup['response_excerpt'] ?? '',
+            ]);
+            return $lookup;
+        }
+
+        $fields = [
+            ['name' => 'id', 'value' => (string) $lookup['lead_id']],
+            ['name' => 'request_id_c', 'value' => $requestId],
+            ['name' => 'delivery_tier_c', 'value' => (string) ($payload['delivery_tier'] ?? 'priority')],
+            ['name' => 'product_code_c', 'value' => (string) ($payload['product_code'] ?? '')],
+            ['name' => 'payment_status_c', 'value' => (string) ($payload['payment_status'] ?? '')],
+            ['name' => 'payment_reference_c', 'value' => (string) ($payload['payment_reference'] ?? '')],
+            ['name' => 'payment_amount_c', 'value' => (string) ($payload['amount'] ?? '')],
+            ['name' => 'payment_currency_c', 'value' => (string) ($payload['currency'] ?? '')],
+        ];
+
+        $update = suitecrm_legacy_call('set_entry', [
+            'session' => (string) $login['session_id'],
+            'module_name' => 'Leads',
+            'name_value_list' => $fields,
+        ]);
+
+        if (!$update['success']) {
+            crm_log('crm_payment_result', [
+                'request_id' => $requestId,
+                'lead_ref' => $leadRef,
+                'lead_id' => $lookup['lead_id'] ?? '',
+                'result' => 'failed',
+                'method' => 'set_entry',
+                'module' => 'Leads',
+                'reason' => $update['error'] ?? 'CRM payment update failed.',
+                'http_status' => $update['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($update['body'] ?? null),
+            ]);
+            return crm_failure('CRM payment update failed.', [
+                'http_status' => $update['status'] ?? 0,
+                'response_excerpt' => crm_response_excerpt($update['body'] ?? null),
+            ]);
+        }
+
+        crm_log('crm_payment_result', [
+            'request_id' => $requestId,
+            'lead_ref' => $leadRef,
+            'lead_id' => $lookup['lead_id'] ?? '',
+            'result' => 'success',
+            'method' => 'set_entry',
+            'module' => 'Leads',
+            'http_status' => $update['status'] ?? 0,
+        ]);
+
+        return [
+            'success' => true,
+            'mode' => crm_mode(),
+            'target' => crm_target_label(),
+            'lead_id' => (string) ($lookup['lead_id'] ?? ''),
+        ];
+    }
+
     function create_suitecrm_legacy_lead(array $payload): array
     {
         $config = site_config();
@@ -302,16 +548,7 @@ if (!function_exists('crm_mode')) {
             'methods' => ['login', 'set_entry'],
         ]);
 
-        $login = suitecrm_legacy_call('login', [
-            'user_auth' => [
-                'user_name' => $config['suitecrm_username'],
-                'password' => md5($config['suitecrm_password']),
-                'version' => '1',
-            ],
-            'application_name' => $config['site_name'],
-            'name_value_list' => [],
-        ]);
-
+        $login = suitecrm_legacy_login_session();
         if (!$login['success']) {
             crm_log('crm_result', [
                 'request_id' => $payload['request_id'] ?? '',
@@ -319,32 +556,16 @@ if (!function_exists('crm_mode')) {
                 'result' => 'failed',
                 'method' => 'login',
                 'module' => 'Leads',
-                'http_status' => $login['status'] ?? 0,
-                'reason' => $login['error'] ?? 'SuiteCRM login request failed.',
-                'response_excerpt' => crm_response_excerpt($login['body'] ?? null),
+                'http_status' => $login['http_status'] ?? 0,
+                'reason' => $login['reason'] ?? 'SuiteCRM login request failed.',
+                'response_excerpt' => $login['response_excerpt'] ?? '',
             ]);
 
             return crm_failure('CRM login request failed.');
         }
+        $sessionId = (string) $login['session_id'];
 
-        $loginData = json_decode((string) ($login['body'] ?? ''), true);
-        $sessionId = is_array($loginData) ? (string) ($loginData['id'] ?? '') : '';
-        if ($sessionId === '') {
-            crm_log('crm_result', [
-                'request_id' => $payload['request_id'] ?? '',
-                'lead_ref' => $leadRef,
-                'result' => 'failed',
-                'method' => 'login',
-                'module' => 'Leads',
-                'http_status' => $login['status'] ?? 0,
-                'reason' => 'SuiteCRM login did not return a session id.',
-                'response_excerpt' => crm_response_excerpt($login['body'] ?? null),
-            ]);
-
-            return crm_failure('CRM login failed.');
-        }
-
-        $names = crm_name_parts((string) ($payload['name'] ?? ''));
+        $names = crm_payload_name_parts($payload);
         $descriptionLines = [
             'Service: ' . (string) ($payload['service_type_label'] ?? ''),
             'Context: ' . (string) ($payload['form_context'] ?? ''),
@@ -364,6 +585,13 @@ if (!function_exists('crm_mode')) {
             ['name' => 'lead_source', 'value' => $config['suitecrm_source']],
             ['name' => 'description', 'value' => implode(PHP_EOL, $descriptionLines)],
         ];
+
+        foreach (crm_structured_fields($payload) as $fieldName => $fieldValue) {
+            if (in_array($fieldName, ['first_name', 'last_name', 'account_name', 'email1', 'phone_work', 'description'], true)) {
+                continue;
+            }
+            $fields[] = ['name' => $fieldName, 'value' => $fieldValue];
+        }
 
         if ($config['suitecrm_assigned_user_id'] !== '') {
             $fields[] = ['name' => 'assigned_user_id', 'value' => $config['suitecrm_assigned_user_id']];
@@ -469,6 +697,7 @@ if (!function_exists('crm_mode')) {
             'industry' => (string) ($payload['service_type_label'] ?? ''),
             'employee_count' => '',
             'description' => implode(PHP_EOL, $descriptionLines),
+            'crm_fields' => crm_structured_fields($payload),
         ];
 
         crm_log('crm_attempt', [

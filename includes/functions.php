@@ -18,9 +18,19 @@ function absolute_url(string $path = '/'): string
     return $cleanPath === '/' ? $base . '/' : $base . $cleanPath;
 }
 
+function asset_path(string $path): string
+{
+    return '/assets/' . ltrim($path, '/');
+}
+
 function asset_url(string $path): string
 {
-    return absolute_url('/assets/' . ltrim($path, '/'));
+    return asset_path($path);
+}
+
+function landing_asset_path(string $path): string
+{
+    return '/landing/' . ltrim($path, '/');
 }
 
 function page_catalog(): array
@@ -65,12 +75,48 @@ function page_catalog(): array
 function page_href(string $slug): string
 {
     $pages = page_catalog();
-    return $pages[$slug]['path'] ?? '/';
+    $path = $pages[$slug]['path'] ?? '/';
+
+    if ($path === '/' || !site_config()['prefer_php_paths']) {
+        return $path;
+    }
+
+    if (preg_match('/\.php$/i', $path)) {
+        return $path;
+    }
+
+    $candidate = dirname(__DIR__) . $path . '.php';
+    if (is_file($candidate)) {
+        return $path . '.php';
+    }
+
+    return $path;
 }
 
 function page_url(string $slug): string
 {
     return absolute_url(page_href($slug));
+}
+
+function landing_page_href(string $slug): string
+{
+    $basePath = '/landing/' . trim($slug, '/');
+
+    if (!site_config()['prefer_php_paths']) {
+        return $basePath;
+    }
+
+    $candidate = dirname(__DIR__) . $basePath . '.php';
+    if (is_file($candidate)) {
+        return $basePath . '.php';
+    }
+
+    return $basePath;
+}
+
+function landing_page_url(string $slug): string
+{
+    return absolute_url(landing_page_href($slug));
 }
 
 function page_definition(string $slug): array
