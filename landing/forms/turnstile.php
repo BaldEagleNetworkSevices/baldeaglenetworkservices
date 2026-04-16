@@ -21,7 +21,7 @@ function landing_turnstile_policy(array $serviceConfig, string $deliveryTier): a
 
 function landing_turnstile_required(array $serviceConfig, string $deliveryTier): bool
 {
-    if (landing_is_local_development()) {
+    if (landing_turnstile_bypass_allowed()) {
         return false;
     }
 
@@ -34,6 +34,11 @@ function landing_turnstile_required(array $serviceConfig, string $deliveryTier):
 function landing_turnstile_site_key(): string
 {
     return landing_global_config()['turnstile_site_key'];
+}
+
+function landing_turnstile_bypass_allowed(): bool
+{
+    return landing_is_local_development() || landing_host_is_current_dev_origin(landing_request_host());
 }
 
 function landing_turnstile_render_state(?array $serviceConfig = null, string $deliveryTier = 'standard'): array
@@ -66,28 +71,31 @@ function landing_turnstile_render_state(?array $serviceConfig = null, string $de
         ];
     }
 
-    $widgetEnabled = $siteKey !== '';
+    $bypassAllowed = landing_turnstile_bypass_allowed();
+    $widgetEnabled = $siteKey !== '' && !$bypassAllowed;
 
     return [
         'site_key' => $siteKey,
         'script_required' => $widgetEnabled,
         'widget_enabled' => $widgetEnabled,
         'required_on_submit' => $required,
-        'notice' => (!$widgetEnabled && $required)
-            ? 'Verification is temporarily unavailable. You can still complete the form, but submission may require a retry once verification is restored.'
-            : '',
+        'notice' => $bypassAllowed
+            ? 'Verification is bypassed on this local development host so non-public domains do not block testing.'
+            : ((!$widgetEnabled && $required)
+                ? 'Verification is temporarily unavailable. You can still complete the form, but submission may require a retry once verification is restored.'
+                : ''),
     ];
 }
 
 function landing_turnstile_expected_hostname(): string
 {
-    $host = parse_url(landing_base_url(), PHP_URL_HOST);
+    $host = parse_url(landing_request_base_url(), PHP_URL_HOST);
     return is_string($host) ? strtolower($host) : '';
 }
 
 function landing_verify_turnstile_token(array $serviceConfig, string $deliveryTier, ?string $token, string $clientIp): array
 {
-    if (landing_is_local_development()) {
+    if (landing_turnstile_bypass_allowed()) {
         return [
             'success' => true,
             'reason_code' => 'turnstile_local_bypass',

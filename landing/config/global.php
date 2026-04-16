@@ -175,6 +175,37 @@ function landing_is_local_development(): bool
     return (bool) preg_match('/\.ngrok-free\.(dev|app)$/i', $host);
 }
 
+function landing_prefers_php_paths(): bool
+{
+    if (function_exists('ben_prefer_php_paths')) {
+        return ben_prefer_php_paths();
+    }
+
+    $explicitPhpPaths = landing_env('USE_PHP_PATHS');
+    if ($explicitPhpPaths !== null) {
+        return landing_env_bool('USE_PHP_PATHS', false);
+    }
+
+    if (!empty($_SERVER['HTTP_HOST']) && landing_host_is_current_dev_origin((string) $_SERVER['HTTP_HOST'])) {
+        return true;
+    }
+
+    $appEnv = strtolower((string) (landing_env('SITE_ENV') ?? landing_env('APP_ENV') ?? ''));
+    if (in_array($appEnv, ['local', 'development', 'dev'], true)) {
+        return true;
+    }
+
+    if (in_array($appEnv, ['production', 'prod', 'staging', 'stage'], true)) {
+        return false;
+    }
+
+    if (PHP_SAPI === 'cli') {
+        return true;
+    }
+
+    return landing_host_is_current_dev_origin((string) ($_SERVER['HTTP_HOST'] ?? ''));
+}
+
 function landing_local_fallback_secret(string $keyName): string
 {
     $seedParts = [
@@ -245,6 +276,27 @@ function landing_base_url(): string
     return rtrim($scheme . '://' . preg_replace('/[^a-z0-9\.\-:]/i', '', (string) $host), '/');
 }
 
+function landing_request_base_url(): string
+{
+    $origin = landing_origin_from_server($_SERVER);
+    if ($origin !== '') {
+        return $origin;
+    }
+
+    return landing_base_url();
+}
+
+function landing_request_host(): string
+{
+    $host = preg_replace('/[^a-z0-9\.\-:]/i', '', (string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if (is_string($host) && $host !== '') {
+        return strtolower($host);
+    }
+
+    $originHost = parse_url(landing_request_base_url(), PHP_URL_HOST);
+    return is_string($originHost) ? strtolower($originHost) : '';
+}
+
 function landing_origin_from_server(array $server): string
 {
     $host = preg_replace('/[^a-z0-9\.\-:]/i', '', (string) ($server['HTTP_HOST'] ?? ''));
@@ -289,6 +341,13 @@ function landing_resolve_allowed_origins(bool $isLocal): array
         $defaultOrigin = $isLocal ? '' : 'https://baldeaglenetworkservices.com';
     }
 
+    $activeOrigin = landing_origin_from_server($_SERVER);
+    $activeHost = (string) parse_url($activeOrigin, PHP_URL_HOST);
+
+    if ($activeOrigin !== '' && ($isLocal || landing_host_is_current_dev_origin($activeHost))) {
+        $configured[] = $activeOrigin;
+    }
+
     if (!$isLocal) {
         if ($defaultOrigin !== '') {
             $configured[] = rtrim($defaultOrigin, '/');
@@ -296,9 +355,6 @@ function landing_resolve_allowed_origins(bool $isLocal): array
 
         return array_values(array_unique(array_filter($configured, static fn (mixed $origin): bool => is_string($origin) && $origin !== '')));
     }
-
-    $activeOrigin = landing_origin_from_server($_SERVER);
-    $activeHost = (string) parse_url($activeOrigin, PHP_URL_HOST);
 
     if ($activeOrigin !== '' && landing_host_is_current_dev_origin($activeHost)) {
         $configured[] = $activeOrigin;
@@ -313,11 +369,16 @@ function landing_resolve_allowed_origins(bool $isLocal): array
 
 function landing_url(string $path = ''): string
 {
-    return landing_base_url() . '/' . ltrim($path, '/');
+    return landing_request_base_url() . '/' . ltrim($path, '/');
 }
 
 function landing_is_https(): bool
 {
+    $forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    if ($forwardedProto === 'https') {
+        return true;
+    }
+
     return !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
 }
 

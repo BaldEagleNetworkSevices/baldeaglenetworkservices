@@ -103,6 +103,41 @@ if (!function_exists('site_config')) {
         return __FILE__;
     }
 
+    function ben_app_env(): string
+    {
+        return strtolower((string) (ben_env('SITE_ENV') ?? ben_env('APP_ENV') ?? ''));
+    }
+
+    function ben_host_is_localish(string $host): bool
+    {
+        $host = strtolower(trim($host));
+        $host = preg_replace('/:\d+$/', '', $host) ?? $host;
+        if ($host === '') {
+            return false;
+        }
+
+        if (in_array($host, ['localhost', '127.0.0.1', '::1', 'network.avalanche'], true)) {
+            return true;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return !filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        }
+
+        if (str_ends_with($host, '.local') || str_ends_with($host, '.test')) {
+            return true;
+        }
+
+        return (bool) preg_match('/\.ngrok-free\.(dev|app)$/i', $host);
+    }
+
+    function ben_has_explicit_request_host(): bool
+    {
+        return ben_env('HTTP_X_FORWARDED_HOST') !== null
+            || ben_env('HTTP_HOST') !== null
+            || ben_env('SERVER_NAME') !== null;
+    }
+
     function ben_is_local_development(): bool
     {
         $explicitPhpPaths = ben_env('USE_PHP_PATHS');
@@ -110,7 +145,7 @@ if (!function_exists('site_config')) {
             return ben_env_bool('USE_PHP_PATHS', false);
         }
 
-        $appEnv = strtolower((string) (ben_env('SITE_ENV') ?? ben_env('APP_ENV') ?? ''));
+        $appEnv = ben_app_env();
         if (in_array($appEnv, ['local', 'development', 'dev'], true)) {
             return true;
         }
@@ -123,26 +158,34 @@ if (!function_exists('site_config')) {
             return true;
         }
 
-        $host = strtolower(ben_host());
-        $host = preg_replace('/:\d+$/', '', $host) ?? $host;
+        return ben_host_is_localish(ben_host());
+    }
 
-        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+    function ben_prefer_php_paths(): bool
+    {
+        $explicitPhpPaths = ben_env('USE_PHP_PATHS');
+        if ($explicitPhpPaths !== null) {
+            return ben_env_bool('USE_PHP_PATHS', false);
+        }
+
+        if (ben_has_explicit_request_host() && ben_host_is_localish(ben_host())) {
             return true;
         }
 
-        if ($host === 'network.avalanche') {
+        $appEnv = ben_app_env();
+        if (in_array($appEnv, ['local', 'development', 'dev'], true)) {
             return true;
         }
 
-        if (str_ends_with($host, '.local') || str_ends_with($host, '.test')) {
+        if (in_array($appEnv, ['production', 'prod', 'staging', 'stage'], true)) {
+            return false;
+        }
+
+        if (PHP_SAPI === 'cli') {
             return true;
         }
 
-        if (preg_match('/\.ngrok-free\.(dev|app)$/i', $host)) {
-            return true;
-        }
-
-        return false;
+        return ben_host_is_localish(ben_host());
     }
     
     function ben_env_bool(string $key, bool $default = false): bool
@@ -188,7 +231,7 @@ if (!function_exists('site_config')) {
         $config = [
             'site_name' => 'Bald Eagle Network Services',
             'site_url' => $siteUrl,
-            'prefer_php_paths' => ben_is_local_development(),
+            'prefer_php_paths' => ben_prefer_php_paths(),
             'tagline' => 'Security-first IT support for Salt Lake businesses',
             'business_email' => ben_env('BUSINESS_EMAIL', ''),
             'business_phone' => ben_env('BUSINESS_PHONE', ''),

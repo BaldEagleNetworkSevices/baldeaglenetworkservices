@@ -5,8 +5,16 @@ function landing_current_page_path(): string
 {
     $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/landing/external-security-scan.php');
     $path = parse_url($requestUri, PHP_URL_PATH);
+    $path = is_string($path) && $path !== '' ? $path : '/landing/external-security-scan.php';
 
-    return is_string($path) && $path !== '' ? $path : '/landing/external-security-scan.php';
+    if (
+        function_exists('landing_page_href')
+        && preg_match('#^/landing/([A-Za-z0-9-]+)(?:\.php)?/?$#', $path, $matches) === 1
+    ) {
+        return landing_page_href($matches[1]);
+    }
+
+    return $path;
 }
 
 function landing_render_pricing_grid(array $pricing): void
