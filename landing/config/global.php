@@ -139,10 +139,6 @@ function landing_is_local_development(): bool
         return ben_is_local_development();
     }
 
-    if (PHP_SAPI === 'cli') {
-        return true;
-    }
-
     $explicitPhpPaths = landing_env('USE_PHP_PATHS');
     if ($explicitPhpPaths !== null) {
         return landing_env_bool('USE_PHP_PATHS', false);
@@ -150,6 +146,14 @@ function landing_is_local_development(): bool
 
     $appEnv = strtolower((string) (landing_env('SITE_ENV') ?? landing_env('APP_ENV') ?? ''));
     if (in_array($appEnv, ['local', 'development', 'dev'], true)) {
+        return true;
+    }
+
+    if (in_array($appEnv, ['production', 'prod', 'staging', 'stage'], true)) {
+        return false;
+    }
+
+    if (PHP_SAPI === 'cli') {
         return true;
     }
 
