@@ -15,10 +15,11 @@ landing_require('shared/components/intake-form.php');
 
 $landingPage = landing_service_config('external-security-scan');
 $selectedTier = landing_selected_tier_details($landingPage);
+$turnstileRender = landing_turnstile_render_state($landingPage, $selectedTier['tier']);
 $landingPath = function_exists('landing_page_href')
     ? landing_page_href('external-security-scan')
     : '/landing/external-security-scan';
-$turnstileScript = landing_turnstile_site_key() !== ''
+$turnstileScript = $turnstileRender['script_required']
     ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
     : '';
 $page = [

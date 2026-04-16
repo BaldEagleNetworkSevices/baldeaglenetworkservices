@@ -153,7 +153,11 @@ if (!function_exists('site_config')) {
             return 'http://127.0.0.1:5000/api/consult';
         }
 
-        return '';
+        if (ben_is_local_development()) {
+            return 'http://127.0.0.1:5000/api/consult';
+        }
+
+        return 'https://api-prod.baldeaglenetworkservices.com/api/consult';
     }
 
     function site_config(): array

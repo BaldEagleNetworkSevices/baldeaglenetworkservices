@@ -36,6 +36,49 @@ function landing_turnstile_site_key(): string
     return landing_global_config()['turnstile_site_key'];
 }
 
+function landing_turnstile_render_state(?array $serviceConfig = null, string $deliveryTier = 'standard'): array
+{
+    $deliveryTier = strtolower(trim($deliveryTier));
+    if (!in_array($deliveryTier, ['standard', 'priority'], true)) {
+        $deliveryTier = 'standard';
+    }
+
+    $required = false;
+    if (is_array($serviceConfig)) {
+        try {
+            $required = landing_turnstile_required($serviceConfig, $deliveryTier);
+        } catch (Throwable) {
+            $required = false;
+        }
+    }
+
+    try {
+        $siteKey = trim(landing_turnstile_site_key());
+    } catch (Throwable) {
+        return [
+            'site_key' => '',
+            'script_required' => false,
+            'widget_enabled' => false,
+            'required_on_submit' => $required,
+            'notice' => $required
+                ? 'Verification is temporarily unavailable. You can still complete the form, but submission may require a retry once verification is restored.'
+                : '',
+        ];
+    }
+
+    $widgetEnabled = $siteKey !== '';
+
+    return [
+        'site_key' => $siteKey,
+        'script_required' => $widgetEnabled,
+        'widget_enabled' => $widgetEnabled,
+        'required_on_submit' => $required,
+        'notice' => (!$widgetEnabled && $required)
+            ? 'Verification is temporarily unavailable. You can still complete the form, but submission may require a retry once verification is restored.'
+            : '',
+    ];
+}
+
 function landing_turnstile_expected_hostname(): string
 {
     $host = parse_url(landing_base_url(), PHP_URL_HOST);

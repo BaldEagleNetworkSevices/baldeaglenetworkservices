@@ -141,11 +141,12 @@ function landing_render_intake_form(array $page): void
     try {
         $context = landing_issue_form_context($page['slug'], $selectedTier['tier']);
         $csrfField = landing_csrf_field();
-        $siteKey = landing_turnstile_site_key();
     } catch (Throwable) {
         landing_render_intake_unavailable($selectedTier);
         return;
     }
+
+    $turnstile = landing_turnstile_render_state($page, $selectedTier['tier']);
     ?>
     <form class="lp-form" action="<?= landing_e(landing_url('landing/forms/intake-handler.php')) ?>" method="post" novalidate>
       <?= $csrfField ?>
@@ -245,8 +246,10 @@ function landing_render_intake_form(array $page): void
       </div>
       <div class="lp-turnstile-slot">
         <p>To keep the request form usable, some submissions include a quick verification step to confirm a real person is sending the request. Priority requests include this step before submission can continue.</p>
-        <?php if ($siteKey !== ''): ?>
-          <div class="cf-turnstile" data-sitekey="<?= landing_e($siteKey) ?>"></div>
+        <?php if ($turnstile['widget_enabled']): ?>
+          <div class="cf-turnstile" data-sitekey="<?= landing_e($turnstile['site_key']) ?>"></div>
+        <?php elseif ($turnstile['notice'] !== ''): ?>
+          <small><?= landing_e($turnstile['notice']) ?></small>
         <?php elseif (landing_is_local_development()): ?>
           <small>Local development bypass is active for the verification step.</small>
         <?php endif; ?>
