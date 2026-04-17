@@ -252,3 +252,113 @@ function landing_stripe_verify_event(string $payload, string $signatureHeader): 
 
     return $decoded;
 }
+
+function landing_priority_payment_status_url(string $requestId, string $paymentToken, array $query = []): string
+{
+    $query['request_id'] = $requestId;
+    $query['payment_token'] = $paymentToken;
+
+    return landing_priority_payment_page_url($query);
+}
+
+function landing_start_priority_checkout(string $requestId, string $paymentToken): array
+{
+    $requestId = trim($requestId);
+    $paymentToken = trim($paymentToken);
+
+    $paymentRequest = landing_payment_request_with_token($requestId, $paymentToken);
+    if (!is_array($paymentRequest) || (($paymentRequest['delivery_tier'] ?? '') !== 'priority')) {
+        throw new RuntimeException('request_not_found');
+    }
+
+    $stripeStatus = landing_stripe_configuration_status();
+    if (!$stripeStatus['checkout_ready']) {
+        throw new RuntimeException('stripe_checkout_not_ready:' . implode(',', $stripeStatus['missing']));
+    }
+
+    if (($paymentRequest['payment_status'] ?? '') === 'paid_priority') {
+        return [
+            'status' => 'already_paid',
+            'request_id' => $requestId,
+            'payment_status_url' => landing_priority_payment_status_url($requestId, $paymentToken),
+        ];
+    }
+
+    $lockToken = '';
+
+    try {
+        $attempt = landing_begin_checkout_session_attempt($requestId, $paymentToken);
+        if (($attempt['action'] ?? '') === 'reuse') {
+            $session = is_array($attempt['session'] ?? null) ? $attempt['session'] : [];
+            $checkoutUrl = trim((string) ($session['checkout_url'] ?? ''));
+            if ($checkoutUrl === '') {
+                throw new RuntimeException('reused_checkout_missing_url');
+            }
+
+            landing_log_payment_event('checkout_session_reused', [
+                'request_id' => $requestId,
+                'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
+            ]);
+
+            return [
+                'status' => 'checkout_reused',
+                'request_id' => $requestId,
+                'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
+                'checkout_url' => $checkoutUrl,
+                'payment_status_url' => landing_priority_payment_status_url($requestId, $paymentToken),
+                'reused' => true,
+            ];
+        }
+
+        if (($attempt['action'] ?? '') === 'locked') {
+            throw new RuntimeException('checkout_creation_in_progress');
+        }
+
+        if (($attempt['action'] ?? '') === 'paid') {
+            return [
+                'status' => 'already_paid',
+                'request_id' => $requestId,
+                'payment_status_url' => landing_priority_payment_status_url($requestId, $paymentToken),
+            ];
+        }
+
+        $lockToken = (string) ($attempt['lock_token'] ?? '');
+        $session = landing_stripe_create_checkout_session($paymentRequest, $paymentToken);
+        $started = landing_finalize_checkout_session_attempt($requestId, $paymentToken, $lockToken, array_merge($session, [
+            'delivery_tier' => (string) ($paymentRequest['delivery_tier'] ?? 'priority'),
+            'product_code' => (string) ($paymentRequest['product_code'] ?? ''),
+            'crm_reference' => (string) ($paymentRequest['crm_reference'] ?? ''),
+        ]));
+
+        if (($started['action'] ?? '') === 'reuse') {
+            $session = is_array($started['session'] ?? null) ? $started['session'] : $session;
+        }
+    } catch (Throwable $exception) {
+        if ($lockToken !== '') {
+            landing_release_checkout_session_attempt($requestId, $lockToken);
+        }
+
+        throw $exception;
+    }
+
+    $checkoutUrl = trim((string) ($session['checkout_url'] ?? ''));
+    if ($checkoutUrl === '') {
+        throw new RuntimeException('checkout_url_missing');
+    }
+
+    landing_log_payment_event('checkout_started', [
+        'request_id' => $requestId,
+        'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
+        'amount_cents' => (int) (($started['session']['amount_cents'] ?? $session['amount_cents'] ?? 0)),
+        'currency' => (string) (($started['session']['currency'] ?? $session['currency'] ?? '')),
+    ]);
+
+    return [
+        'status' => 'checkout_started',
+        'request_id' => $requestId,
+        'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
+        'checkout_url' => $checkoutUrl,
+        'payment_status_url' => landing_priority_payment_status_url($requestId, $paymentToken),
+        'reused' => false,
+    ];
+}

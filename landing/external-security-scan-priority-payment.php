@@ -136,8 +136,22 @@ function landing_payment_status_banner(?array $request, string $checkoutState): 
     return [
         'variant' => 'success',
         'title' => 'Priority request received',
-        'message' => 'Your request is on file. Complete secure payment below to activate the paid priority turnaround.',
+        'message' => 'Your request is on file. This page tracks checkout return, payment confirmation, and lets you recover checkout if it was interrupted.',
     ];
+}
+
+function landing_payment_cta_label(?array $request, string $checkoutState): string
+{
+    if (!is_array($request)) {
+        return 'Pay Securely With Stripe';
+    }
+
+    $status = (string) ($request['payment_status'] ?? '');
+    if ($checkoutState === 'cancel' || $checkoutState === 'error' || $status === 'checkout_abandoned' || $status === 'payment_failed') {
+        return 'Restart Secure Checkout';
+    }
+
+    return 'Resume Stripe Checkout';
 }
 
 function landing_payment_status_class(string $variant): string
@@ -160,7 +174,7 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="lp-section__heading">
         <p class="lp-eyebrow">Priority Payment</p>
         <h1 class="lp-payment-title">Priority Scan Payment</h1>
-        <p class="lp-lede">Payment only starts after a valid intake request exists, so every checkout stays tied to a real request ID.</p>
+        <p class="lp-lede">This page is the secure return and confirmation view for a valid Priority request, with the same request-bound access token used for retry and receipt status.</p>
       </div>
 
       <div class="<?= landing_e(landing_payment_status_class($banner['variant'])) ?>">
@@ -251,7 +265,7 @@ require_once __DIR__ . '/../includes/header.php';
               <input type="hidden" name="request_id" value="<?= landing_e((string) $paymentRequest['request_id']) ?>">
               <input type="hidden" name="payment_token" value="<?= landing_e($paymentToken) ?>">
               <div class="lp-submit-row">
-                <button class="lp-button lp-button--primary" type="submit">Pay Securely With Stripe</button>
+                <button class="lp-button lp-button--primary" type="submit"><?= landing_e(landing_payment_cta_label($paymentRequest, $checkoutState)) ?></button>
               </div>
             </form>
             <?php if ($checkoutState === 'cancel'): ?>

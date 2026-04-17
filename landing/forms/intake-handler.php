@@ -14,6 +14,7 @@ landing_require('security/audit-log.php');
 landing_require('crm/suitecrm-handler.php');
 landing_require('payments/hooks.php');
 landing_require('payments/store.php');
+landing_require('payments/stripe.php');
 
 header('Cache-Control: no-store, max-age=0');
 
@@ -315,15 +316,37 @@ clear_old_input();
 
 if (!landing_response_wants_json($_SERVER)) {
     if ($clean['delivery_tier'] === 'priority') {
-        $location = landing_priority_payment_page_path() . '?' . http_build_query(
-            landing_payment_access_query($paymentRequest)
-        );
+        $paymentAccess = landing_payment_access_query($paymentRequest);
+        $location = landing_priority_payment_page_path() . '?' . http_build_query($paymentAccess);
+
+        try {
+            $checkout = landing_start_priority_checkout(
+                (string) ($paymentAccess['request_id'] ?? ''),
+                (string) ($paymentAccess['payment_token'] ?? '')
+            );
+
+            if (($checkout['status'] ?? '') === 'already_paid') {
+                $location = (string) ($checkout['payment_status_url'] ?? $location);
+            } else {
+                $location = trim((string) ($checkout['checkout_url'] ?? '')) ?: $location;
+            }
+        } catch (Throwable $exception) {
+            $location = landing_priority_payment_page_path() . '?' . http_build_query(array_merge($paymentAccess, [
+                'checkout' => 'error',
+            ]));
+
+            landing_log_payment_event('priority_checkout_start_failed', [
+                'request_id' => $queueRecord['request_id'],
+                'reason' => $exception->getMessage(),
+            ]);
+        }
+
         if (landing_is_local_development()) {
             header('X-Landing-Resolved-Tier: ' . $clean['delivery_tier']);
             header('X-Landing-Request-Id: ' . $queueRecord['request_id']);
             header('X-Landing-Payment-Token-Created: ' . (!empty($paymentRequest['payment_access_token']) ? 'yes' : 'no'));
             header('X-Landing-Redirect-Target: ' . $location);
-            landing_log_payment_event('priority_intake_redirect', [
+            landing_log_payment_event('priority_intake_checkout_redirect', [
                 'request_id' => $queueRecord['request_id'],
                 'resolved_tier' => $clean['delivery_tier'],
                 'redirect_target' => $location,
@@ -355,6 +378,7 @@ echo json_encode([
     'payment_url' => $clean['delivery_tier'] === 'priority'
         ? landing_priority_payment_page_url(landing_payment_access_query($paymentRequest))
         : '',
+    'checkout_url' => '',
     'debug_resolved_tier' => landing_is_local_development() ? $clean['delivery_tier'] : null,
     'debug_redirect_target' => landing_is_local_development() && $clean['delivery_tier'] === 'priority'
         ? landing_priority_payment_page_url(landing_payment_access_query($paymentRequest))

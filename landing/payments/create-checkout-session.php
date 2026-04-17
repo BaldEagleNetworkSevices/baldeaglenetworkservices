@@ -64,23 +64,25 @@ if (!landing_verify_csrf_token($_POST['csrf_token'] ?? null)) {
 
 $requestId = trim((string) ($_POST['request_id'] ?? ''));
 $paymentToken = trim((string) ($_POST['payment_token'] ?? ''));
-$paymentRequest = landing_payment_request_with_token($requestId, $paymentToken);
-if (!is_array($paymentRequest) || (($paymentRequest['delivery_tier'] ?? '') !== 'priority')) {
-    landing_payment_fail($requestId, $paymentToken, 404, 'A valid priority request is required before checkout can begin.', 'request_not_found');
+
+try {
+    $checkout = landing_start_priority_checkout($requestId, $paymentToken);
+} catch (Throwable $exception) {
+    $reason = $exception->getMessage();
+    $statusCode = match ($reason) {
+        'request_not_found' => 404,
+        'checkout_creation_in_progress' => 409,
+        default => 503,
+    };
+    $message = $reason === 'request_not_found'
+        ? 'A valid priority request is required before checkout can begin.'
+        : ($reason === 'checkout_creation_in_progress'
+            ? 'A secure checkout session is already being prepared. Please wait a moment and try again.'
+            : 'Secure checkout is temporarily unavailable. Please try again in a moment.');
+    landing_payment_fail($requestId, $paymentToken, $statusCode, $message, $reason);
 }
 
-$stripeStatus = landing_stripe_configuration_status();
-if (!$stripeStatus['checkout_ready']) {
-    landing_payment_fail(
-        $requestId,
-        $paymentToken,
-        503,
-        'Secure checkout is temporarily unavailable. Please try again in a moment.',
-        'stripe_checkout_not_ready:' . implode(',', $stripeStatus['missing'])
-    );
-}
-
-if (($paymentRequest['payment_status'] ?? '') === 'paid_priority') {
+if (($checkout['status'] ?? '') === 'already_paid') {
     if (!landing_payment_wants_json($_SERVER)) {
         landing_payment_redirect_back($requestId, $paymentToken);
     }
@@ -94,84 +96,10 @@ if (($paymentRequest['payment_status'] ?? '') === 'paid_priority') {
     exit;
 }
 
-try {
-    $attempt = landing_begin_checkout_session_attempt($requestId, $paymentToken);
-    if (($attempt['action'] ?? '') === 'reuse') {
-        $session = is_array($attempt['session'] ?? null) ? $attempt['session'] : [];
-        $checkoutUrl = trim((string) ($session['checkout_url'] ?? ''));
-        if ($checkoutUrl === '') {
-            landing_payment_fail($requestId, $paymentToken, 503, 'Secure checkout is temporarily unavailable. Please try again in a moment.', 'reused_checkout_missing_url');
-        }
-
-        landing_log_payment_event('checkout_session_reused', [
-            'request_id' => $requestId,
-            'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
-        ]);
-
-        if (!landing_payment_wants_json($_SERVER)) {
-            header('Location: ' . $checkoutUrl, true, 303);
-            exit;
-        }
-
-        http_response_code(200);
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode([
-            'status' => 'checkout_reused',
-            'request_id' => $requestId,
-            'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
-            'checkout_url' => $checkoutUrl,
-            'reused' => true,
-        ], JSON_UNESCAPED_SLASHES);
-        exit;
-    }
-
-    if (($attempt['action'] ?? '') === 'locked') {
-        landing_payment_fail($requestId, $paymentToken, 409, 'A secure checkout session is already being prepared. Please wait a moment and try again.', 'checkout_creation_in_progress');
-    }
-
-    if (($attempt['action'] ?? '') === 'paid') {
-        if (!landing_payment_wants_json($_SERVER)) {
-            landing_payment_redirect_back($requestId, $paymentToken);
-        }
-
-        http_response_code(200);
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode([
-            'status' => 'already_paid',
-            'request_id' => $requestId,
-        ], JSON_UNESCAPED_SLASHES);
-        exit;
-    }
-
-    $lockToken = (string) ($attempt['lock_token'] ?? '');
-    $session = landing_stripe_create_checkout_session($paymentRequest, $paymentToken);
-    $started = landing_finalize_checkout_session_attempt($requestId, $paymentToken, $lockToken, array_merge($session, [
-        'delivery_tier' => (string) ($paymentRequest['delivery_tier'] ?? 'priority'),
-        'product_code' => (string) ($paymentRequest['product_code'] ?? ''),
-        'crm_reference' => (string) ($paymentRequest['crm_reference'] ?? ''),
-    ]));
-
-    if (($started['action'] ?? '') === 'reuse') {
-        $session = is_array($started['session'] ?? null) ? $started['session'] : $session;
-    }
-} catch (Throwable $exception) {
-    if (isset($lockToken) && is_string($lockToken) && $lockToken !== '') {
-        landing_release_checkout_session_attempt($requestId, $lockToken);
-    }
-    landing_payment_fail($requestId, $paymentToken, 503, 'Secure checkout is temporarily unavailable. Please try again in a moment.', $exception->getMessage());
-}
-
-$checkoutUrl = trim((string) ($session['checkout_url'] ?? ''));
+$checkoutUrl = trim((string) ($checkout['checkout_url'] ?? ''));
 if ($checkoutUrl === '') {
     landing_payment_fail($requestId, $paymentToken, 503, 'Secure checkout is temporarily unavailable. Please try again in a moment.', 'checkout_url_missing');
 }
-
-landing_log_payment_event('checkout_started', [
-    'request_id' => $requestId,
-    'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
-    'amount_cents' => (int) (($started['session']['amount_cents'] ?? $session['amount_cents'] ?? 0)),
-    'currency' => (string) (($started['session']['currency'] ?? $session['currency'] ?? '')),
-]);
 
 if (!landing_payment_wants_json($_SERVER)) {
     header('Location: ' . $checkoutUrl, true, 303);
@@ -181,10 +109,10 @@ if (!landing_payment_wants_json($_SERVER)) {
 http_response_code(201);
 header('Content-Type: application/json; charset=UTF-8');
 echo json_encode([
-    'status' => 'checkout_started',
+    'status' => (string) ($checkout['status'] ?? 'checkout_started'),
     'request_id' => $requestId,
-    'stripe_checkout_session_id' => (string) ($session['stripe_checkout_session_id'] ?? ''),
+    'stripe_checkout_session_id' => (string) ($checkout['stripe_checkout_session_id'] ?? ''),
     'checkout_url' => $checkoutUrl,
-    'reused' => false,
+    'reused' => (bool) ($checkout['reused'] ?? false),
 ], JSON_UNESCAPED_SLASHES);
 exit;
