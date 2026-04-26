@@ -45,19 +45,18 @@ require_once __DIR__ . '/../includes/header.php';
         <p class="lp-lede"><?= landing_e($landingPage['hero_intro']) ?></p>
         <div class="lp-actions">
           <a class="lp-button lp-button--primary" href="#pricing"><?= landing_e($landingPage['primary_cta']) ?></a>
-          <a class="lp-button lp-button--ghost" href="#included"><?= landing_e($landingPage['secondary_cta']) ?></a>
         </div>
       </div>
       <aside class="lp-hero__panel">
-        <p class="lp-hero__panel-title">What you get</p>
-        <p>External exposure summary, DNS and email posture review, website security checks, and prioritized findings you can act on quickly.</p>
+        <p class="lp-hero__panel-title">Where this fits</p>
+        <p>This is a secondary offer for businesses that need fast exposure triage after a Recovery Readiness Test or urgent risk concern.</p>
         <ul class="lp-checklist">
           <li>DNS, TLS, and header review</li>
           <li>Email authentication posture snapshot</li>
           <li>Visible exposure indicators and next steps</li>
           <li>Delivered in 12 to 24 hours, or faster with Priority</li>
         </ul>
-        <p><a class="lp-button lp-button--primary" href="#intake">Start Your Scan Request</a></p>
+        <p><a class="lp-button lp-button--primary" href="#pricing">Start External Exposure Triage</a></p>
       </aside>
     </section>
 
@@ -141,12 +140,11 @@ require_once __DIR__ . '/../includes/header.php';
 
     <section class="lp-section">
       <div class="lp-card">
-        <p class="lp-eyebrow">Ready To Buy</p>
-        <h2>Start with the scan that shows what your external footprint is already exposing.</h2>
+        <p class="lp-eyebrow">Need this now</p>
+        <h2>Start external exposure triage before downtime compounds the risk.</h2>
         <p class="lp-lede">If you need a standard turnaround, start there. If timing matters, choose Priority and move straight to the protected intake.</p>
         <div class="lp-actions">
-          <a class="lp-button lp-button--primary" href="#intake">Go To Intake</a>
-          <a class="lp-button lp-button--ghost" href="#pricing">Compare Pricing</a>
+          <a class="lp-button lp-button--primary" href="#pricing">Start External Exposure Triage</a>
         </div>
       </div>
     </section>

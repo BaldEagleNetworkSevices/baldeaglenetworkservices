@@ -5,10 +5,16 @@ require_once __DIR__ . '/includes/functions.php';
 
 header('Content-Type: application/xml; charset=UTF-8');
 
-$exclude = ['privacy-policy', 'terms'];
 $uniquePages = [];
 foreach (page_catalog() as $slug => $item) {
-    if (in_array($slug, $exclude, true)) {
+    $definition = site_page_definitions()[$slug] ?? null;
+    if ($definition === null) {
+        continue;
+    }
+
+    $robots = strtolower((string) ($definition['robots'] ?? 'index,follow'));
+    $template = (string) ($definition['template'] ?? '');
+    if (str_contains($robots, 'noindex') || in_array($template, ['404', 'legal'], true)) {
         continue;
     }
 

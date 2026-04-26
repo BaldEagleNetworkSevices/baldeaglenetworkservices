@@ -1,3 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /app/
+Disallow: /storage/
+Disallow: /deploy/
+Disallow: /systemd/
+Disallow: /landing/payments/
+Disallow: /landing/security/
+Disallow: /landing/crm/
+Disallow: /landing/forms/
+Disallow: /landing/config/
+Disallow: /landing/reports/report-access.php
+Disallow: /assets/contact-handler.php
 Sitemap: https://baldeaglenetworkservices.com/sitemap.xml

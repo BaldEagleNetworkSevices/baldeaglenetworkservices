@@ -131,7 +131,7 @@ function landing_render_intake_unavailable(array $selectedTier): void
       <strong>Secure request form temporarily unavailable.</strong>
       <span>Please refresh the page and try again. If the problem continues, use the main contact page so we can help you complete the request safely.</span>
     </div>
-    <p><a class="lp-button lp-button--ghost" href="<?= landing_e(page_href('contact')) ?>">Go to Contact</a></p>
+    <p><a class="lp-button lp-button--ghost" href="<?= landing_e(page_href('contact')) ?>">Run a Recovery Readiness Test</a></p>
     <?php
 }
 

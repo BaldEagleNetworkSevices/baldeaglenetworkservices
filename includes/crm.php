@@ -568,6 +568,9 @@ if (!function_exists('crm_mode')) {
         $names = crm_payload_name_parts($payload);
         $descriptionLines = [
             'Service: ' . (string) ($payload['service_type_label'] ?? ''),
+            'Preferred Contact: ' . (string) ($payload['preferred_contact'] ?? ''),
+            'Employee Count: ' . (string) ($payload['employee_count'] ?? ''),
+            'Main Concern: ' . (string) ($payload['main_concern'] ?? ''),
             'Context: ' . (string) ($payload['form_context'] ?? ''),
             'Request ID: ' . (string) ($payload['request_id'] ?? ''),
             'IP: ' . (string) ($payload['ip'] ?? ''),
@@ -682,6 +685,9 @@ if (!function_exists('crm_mode')) {
         $leadRef = crm_lead_ref($payload);
         $descriptionLines = [
             'Service: ' . (string) ($payload['service_type_label'] ?? ''),
+            'Preferred Contact: ' . (string) ($payload['preferred_contact'] ?? ''),
+            'Employee Count: ' . (string) ($payload['employee_count'] ?? ''),
+            'Main Concern: ' . (string) ($payload['main_concern'] ?? ''),
             'Context: ' . (string) ($payload['form_context'] ?? ''),
             'Request ID: ' . (string) ($payload['request_id'] ?? ''),
             'IP: ' . (string) ($payload['ip'] ?? ''),
@@ -695,7 +701,8 @@ if (!function_exists('crm_mode')) {
             'email' => (string) ($payload['email'] ?? ''),
             'phone' => (string) ($payload['phone'] ?? ''),
             'industry' => (string) ($payload['service_type_label'] ?? ''),
-            'employee_count' => '',
+            'employee_count' => (string) ($payload['employee_count'] ?? ''),
+            'preferred_contact' => (string) ($payload['preferred_contact'] ?? ''),
             'description' => implode(PHP_EOL, $descriptionLines),
             'crm_fields' => crm_structured_fields($payload),
         ];

@@ -7,24 +7,24 @@ $config = site_config();
       <div class="container footer-grid">
         <div>
           <p class="footer-title"><?= e($config['site_name']) ?></p>
-          <p class="footer-copy">Security-first IT support, Microsoft 365 administration, infrastructure projects, and risk reduction for Salt Lake businesses with 5 to 20 employees.</p>
+          <p class="footer-copy">Recovery readiness testing, verified backup restore validation, and ransomware resilience support for Salt Lake metro offices.</p>
         </div>
         <div>
           <p class="footer-title">Core Pages</p>
           <ul class="footer-list">
             <li><a href="<?= e(page_href('services')) ?>">Services</a></li>
-            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">Plans</a></li>
-            <li><a href="<?= e(page_href('one-off-it-projects')) ?>">Projects</a></li>
+            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Backup &amp; Recovery</a></li>
+            <li><a href="<?= e(page_href('managed-it-services')) ?>">Recovery Planning</a></li>
             <li><a href="<?= e(page_href('service-area')) ?>">Service Area</a></li>
           </ul>
         </div>
         <div>
-          <p class="footer-title">Security &amp; Cloud</p>
+          <p class="footer-title">Continuity Focus</p>
           <ul class="footer-list">
-            <li><a href="<?= e(page_href('network-security')) ?>">Network Security</a></li>
-            <li><a href="<?= e(page_href('microsoft-365-services')) ?>">Microsoft 365</a></li>
-            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Risk Assessments</a></li>
-            <li><a href="<?= e(page_href('compliance-readiness')) ?>">Compliance</a></li>
+            <li><a href="<?= e(page_href('network-security')) ?>">Security Hardening</a></li>
+            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">Stability &amp; Monitoring</a></li>
+            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Risk Assessment</a></li>
+            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Recovery Verification</a></li>
           </ul>
         </div>
         <div>

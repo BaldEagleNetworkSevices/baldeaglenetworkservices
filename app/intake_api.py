@@ -7,12 +7,14 @@ import re
 from typing import Any
 
 from flask import Flask, jsonify, request
+from werkzeug.exceptions import RequestEntityTooLarge
 from pymysql.err import MySQLError
 
 from config import load_intake_api_config
 from db import connect, database_healthcheck, insert_lead_queue_row
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 
 CONFIG = load_intake_api_config()
 
@@ -42,7 +44,21 @@ def clean_str(value: Any, max_len: int) -> str:
         return ""
     if not isinstance(value, str):
         value = str(value)
+    value = re.sub(r"[\x00-\x1f\x7f]", "", value)
     return value.strip()[:max_len]
+
+
+@app.after_request
+def apply_security_headers(response):
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_too_large(_error):
+    return jsonify({"error": "payload_too_large"}), 413
 
 
 def clean_crm_fields(data: Any) -> dict[str, str]:

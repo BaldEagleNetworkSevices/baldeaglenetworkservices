@@ -8,8 +8,6 @@ $config = site_config();
 $ogImage = $page['og_image'] ?? absolute_url(asset_path('img/og-default.jpg'));
 $navItems = [
     'services' => 'Services',
-    'plans' => 'Plans',
-    'projects' => 'Projects',
     'about' => 'About',
     'service-area' => 'Service Area',
     'contact' => 'Contact',
@@ -66,7 +64,7 @@ $navItems = [
         </nav>
 
         <div class="header-actions">
-          <a class="button button--primary button--small desktop-cta" href="<?= e(page_href('contact')) ?>">Book IT &amp; Security Review</a>
+          <a class="button button--primary button--small desktop-cta" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
           <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-nav-toggle>
             <span class="nav-toggle__label">Menu</span>
             <span class="nav-toggle__bars" aria-hidden="true">
@@ -91,11 +89,11 @@ $navItems = [
             <p><?= e($group) ?></p>
             <ul>
               <?php foreach ($slugs as $slug): ?>
-                <li><a href="<?= e(page_href($slug)) ?>"><?= e(page_catalog()[$slug]['label']) ?></a></li>
+                <li><a href="<?= e(page_href($slug)) ?>"<?= ($page['slug'] === $slug || $page['nav_key'] === $slug) ? ' aria-current="page"' : '' ?>><?= e(page_catalog()[$slug]['label']) ?></a></li>
               <?php endforeach; ?>
             </ul>
           </div>
         <?php endforeach; ?>
-        <a class="button button--primary mobile-menu__cta" href="<?= e(page_href('contact')) ?>">Book IT &amp; Security Review</a>
+        <a class="button button--primary mobile-menu__cta" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
       </div>
     </aside>

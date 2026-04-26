@@ -25,7 +25,13 @@ function asset_path(string $path): string
 
 function asset_url(string $path): string
 {
-    return asset_path($path);
+    $url = asset_path($path);
+    $file = dirname(__DIR__) . $url;
+    if (!is_file($file)) {
+        return $url;
+    }
+
+    return $url . '?v=' . (string) filemtime($file);
 }
 
 function landing_asset_path(string $path): string
@@ -44,29 +50,29 @@ function page_catalog(): array
     $pages = [
         'home' => ['path' => '/', 'label' => 'Home'],
         'services' => ['path' => '/services', 'label' => 'Services'],
-        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Plans'],
-        'projects' => ['path' => '/one-off-it-projects', 'label' => 'Projects'],
+        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Continuity Monitoring'],
+        'projects' => ['path' => '/one-off-it-projects', 'label' => 'Recovery Projects'],
         'about' => ['path' => '/about', 'label' => 'About'],
         'service-area' => ['path' => '/service-area', 'label' => 'Service Area'],
-        'contact' => ['path' => '/contact', 'label' => 'Contact'],
+        'contact' => ['path' => '/contact', 'label' => 'Request Risk Assessment'],
         'faq' => ['path' => '/faq', 'label' => 'FAQ'],
         'privacy-policy' => ['path' => '/privacy-policy', 'label' => 'Privacy Policy'],
         'terms' => ['path' => '/terms', 'label' => 'Terms'],
-        'managed-it-services' => ['path' => '/managed-it-services', 'label' => 'Managed IT Services'],
-        'network-security' => ['path' => '/network-security', 'label' => 'Network Security'],
-        'microsoft-365-services' => ['path' => '/microsoft-365-services', 'label' => 'Microsoft 365 Services'],
+        'managed-it-services' => ['path' => '/managed-it-services', 'label' => 'Recovery Assurance'],
+        'network-security' => ['path' => '/network-security', 'label' => 'Security Hardening'],
+        'microsoft-365-services' => ['path' => '/microsoft-365-services', 'label' => 'Identity & Access Review'],
         'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery', 'label' => 'Backup & Disaster Recovery'],
-        'network-cabling-wifi' => ['path' => '/network-cabling-wifi', 'label' => 'Network Cabling & Wi-Fi'],
-        'voip-business-phone-systems' => ['path' => '/voip-business-phone-systems', 'label' => 'VoIP Business Phone Systems'],
-        'security-risk-assessments' => ['path' => '/security-risk-assessments', 'label' => 'Security Risk Assessments'],
-        'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Compliance Readiness'],
-        'endpoint-management' => ['path' => '/endpoint-management', 'label' => 'Endpoint Management'],
-        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly IT Support Plans'],
-        'one-off-it-projects' => ['path' => '/one-off-it-projects', 'label' => 'One-Off IT Projects'],
-        'it-services-salt-lake-city' => ['path' => '/it-services-salt-lake-city', 'label' => 'IT Services Salt Lake City'],
-        'managed-it-support-salt-lake-city' => ['path' => '/managed-it-support-salt-lake-city', 'label' => 'Managed IT Support Salt Lake City'],
-        'microsoft-365-support-salt-lake-city' => ['path' => '/microsoft-365-support-salt-lake-city', 'label' => 'Microsoft 365 Support Salt Lake City'],
-        'cybersecurity-salt-lake-city' => ['path' => '/cybersecurity-salt-lake-city', 'label' => 'Cybersecurity Salt Lake City'],
+        'network-cabling-wifi' => ['path' => '/network-cabling-wifi', 'label' => 'Office Network Dependencies'],
+        'voip-business-phone-systems' => ['path' => '/voip-business-phone-systems', 'label' => 'Communications Continuity'],
+        'security-risk-assessments' => ['path' => '/security-risk-assessments', 'label' => 'Recovery Readiness Test'],
+        'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Continuity & Control Review'],
+        'endpoint-management' => ['path' => '/endpoint-management', 'label' => 'Workstation Recovery Readiness'],
+        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Stability & Monitoring'],
+        'one-off-it-projects' => ['path' => '/one-off-it-projects', 'label' => 'Recovery Planning Projects'],
+        'it-services-salt-lake-city' => ['path' => '/it-services-salt-lake-city', 'label' => 'Recovery Support Salt Lake City'],
+        'managed-it-support-salt-lake-city' => ['path' => '/managed-it-support-salt-lake-city', 'label' => 'Continuity Monitoring Salt Lake City'],
+        'microsoft-365-support-salt-lake-city' => ['path' => '/microsoft-365-support-salt-lake-city', 'label' => 'Account Access Controls Salt Lake City'],
+        'cybersecurity-salt-lake-city' => ['path' => '/cybersecurity-salt-lake-city', 'label' => 'Ransomware Resilience Salt Lake City'],
     ];
 
     return $pages;
@@ -347,33 +353,22 @@ function base_schemas(array $page): array
 
 function render_schemas(array $page): void
 {
+    $nonce = function_exists('ben_csp_nonce') ? ben_csp_nonce() : '';
     foreach (base_schemas($page) as $schema) {
-        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . PHP_EOL;
+        $nonceAttr = $nonce !== '' ? ' nonce="' . e($nonce) . '"' : '';
+        echo '<script type="application/ld+json"' . $nonceAttr . '>' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . PHP_EOL;
     }
 }
 
 function navigation_groups(): array
 {
     return [
-        'Services' => [
-            'services',
-            'managed-it-services',
-            'network-security',
-            'microsoft-365-services',
+        'Core Services' => [
             'backup-disaster-recovery',
-            'network-cabling-wifi',
-            'voip-business-phone-systems',
+            'managed-it-services',
             'security-risk-assessments',
-            'compliance-readiness',
-            'endpoint-management',
-        ],
-        'Engagements' => [
             'monthly-it-support-plans',
-            'one-off-it-projects',
-            'it-services-salt-lake-city',
-            'managed-it-support-salt-lake-city',
-            'microsoft-365-support-salt-lake-city',
-            'cybersecurity-salt-lake-city',
+            'network-security',
         ],
         'Company' => [
             'about',
@@ -382,6 +377,29 @@ function navigation_groups(): array
             'contact',
         ],
     ];
+}
+
+function contact_service_options(): array
+{
+    $allowed = site_config()['allowed_service_types'];
+    $preferredKeys = [
+        'risk-assessment',
+        'backup-dr',
+        'microsoft-365',
+        'network-security',
+        'managed-it',
+        'compliance',
+        'other',
+    ];
+
+    $options = [];
+    foreach ($preferredKeys as $key) {
+        if (isset($allowed[$key])) {
+            $options[$key] = $allowed[$key];
+        }
+    }
+
+    return $options;
 }
 
 function service_cards(array $slugs): array
@@ -401,7 +419,7 @@ function service_cards(array $slugs): array
     return $content;
 }
 
-function render_contact_form(string $context = 'general', string $heading = 'Book IT & Security Review', string $copy = 'Tell us what is unstable, exposed, or overdue. We will respond with a clear next step.'): void
+function render_contact_form(string $context = 'general', string $heading = 'Request a Risk Assessment', string $copy = 'Backups are not recovery. Use this quick recovery check to verify what can actually be restored before downtime proves otherwise.'): void
 {
     $flash = pull_flash();
     $statusClass = 'form-response';
@@ -422,7 +440,7 @@ function render_contact_form(string $context = 'general', string $heading = 'Boo
     ?>
     <section class="contact-panel" id="contact-form">
       <div class="contact-panel__intro">
-        <span class="eyebrow">Request a Review</span>
+        <span class="eyebrow">Quick Recovery Check</span>
         <h2><?= e($heading) ?></h2>
         <p><?= e($copy) ?></p>
       </div>
@@ -436,45 +454,57 @@ function render_contact_form(string $context = 'general', string $heading = 'Boo
         <div class="form-grid">
           <div class="field">
             <label for="name">Name</label>
-            <input id="name" name="name" type="text" autocomplete="name" value="<?= e(old_input('name')) ?>" required>
-            <p class="field-error" data-field-error="name"></p>
+            <input id="name" name="name" type="text" autocomplete="name" value="<?= e(old_input('name')) ?>" required aria-describedby="name-error">
+            <p class="field-error" id="name-error" data-field-error="name"></p>
           </div>
           <div class="field">
-            <label for="company">Company</label>
-            <input id="company" name="company" type="text" autocomplete="organization" value="<?= e(old_input('company')) ?>" required>
-            <p class="field-error" data-field-error="company"></p>
+            <label for="company">Business Name</label>
+            <input id="company" name="company" type="text" autocomplete="organization" value="<?= e(old_input('company')) ?>" required aria-describedby="company-error">
+            <p class="field-error" id="company-error" data-field-error="company"></p>
           </div>
           <div class="field">
             <label for="email">Work Email</label>
-            <input id="email" name="email" type="email" autocomplete="email" value="<?= e(old_input('email')) ?>" required>
-            <p class="field-error" data-field-error="email"></p>
+            <input id="email" name="email" type="email" autocomplete="email" inputmode="email" value="<?= e(old_input('email')) ?>" required aria-describedby="email-error">
+            <p class="field-error" id="email-error" data-field-error="email"></p>
           </div>
           <div class="field">
-            <label for="phone">Phone</label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel" value="<?= e(old_input('phone')) ?>">
-            <p class="field-error" data-field-error="phone"></p>
+            <label for="phone">Phone <span class="field-optional">(optional)</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" value="<?= e(old_input('phone')) ?>" aria-describedby="phone-error">
+            <p class="field-error" id="phone-error" data-field-error="phone"></p>
           </div>
           <div class="field field--full">
-            <label for="service_type">Service Needed</label>
-            <select id="service_type" name="service_type" required>
-              <option value="">Select a service</option>
-              <?php foreach (site_config()['allowed_service_types'] as $value => $label): ?>
+            <label for="service_type">What Should We Review?</label>
+            <select id="service_type" name="service_type" required aria-describedby="service-type-error">
+              <option value="">Select a review type</option>
+              <?php foreach (contact_service_options() as $value => $label): ?>
                 <option value="<?= e($value) ?>"<?= $serviceType === $value ? ' selected' : '' ?>><?= e($label) ?></option>
               <?php endforeach; ?>
             </select>
-            <p class="field-error" data-field-error="service_type"></p>
+            <p class="field-error" id="service-type-error" data-field-error="service_type"></p>
+          </div>
+          <div class="field">
+            <label for="main_concern">Primary Concern</label>
+            <select id="main_concern" name="main_concern" required aria-describedby="main-concern-error">
+              <option value="">Select primary concern</option>
+              <option value="Backup recovery"<?= old_input('main_concern') === 'Backup recovery' ? ' selected' : '' ?>>Backup recovery</option>
+              <option value="Account access"<?= old_input('main_concern') === 'Account access' ? ' selected' : '' ?>>Account access</option>
+              <option value="Ransomware"<?= old_input('main_concern') === 'Ransomware' ? ' selected' : '' ?>>Ransomware</option>
+              <option value="Downtime"<?= old_input('main_concern') === 'Downtime' ? ' selected' : '' ?>>Downtime</option>
+              <option value="Not sure"<?= old_input('main_concern') === 'Not sure' ? ' selected' : '' ?>>Not sure</option>
+            </select>
+            <p class="field-error" id="main-concern-error" data-field-error="main_concern"></p>
           </div>
           <div class="field field--full">
-            <label for="message">What needs attention</label>
-            <textarea id="message" name="message" rows="5" required><?= e(old_input('message')) ?></textarea>
-            <p class="field-error" data-field-error="message"></p>
+            <label for="message">What Happens If Your Main System Is Unavailable Tomorrow?</label>
+            <textarea id="message" name="message" rows="5" placeholder="Share the system you cannot afford to lose, when you last tested a restore, and what worries you most about downtime or ransomware." required aria-describedby="message-error"><?= e(old_input('message')) ?></textarea>
+            <p class="field-error" id="message-error" data-field-error="message"></p>
           </div>
         </div>
         <div class="form-actions">
-          <button class="button button--primary" type="submit" data-submit-button>Book IT &amp; Security Review</button>
-          <p class="form-meta">Salt Lake metro only. Monthly support and focused project work.</p>
+          <button class="button button--primary" type="submit" data-submit-button>Request a Risk Assessment</button>
+          <p class="form-meta">Salt Lake metro only. Best fit: small offices that need tested backups, recovery planning, or ransomware resilience.</p>
         </div>
-        <p class="<?= e($statusClass) ?>" aria-live="polite" data-form-status><?= e($statusMessage) ?></p>
+        <p class="<?= e($statusClass) ?>" aria-live="polite" role="status" tabindex="-1" data-form-status><?= e($statusMessage) ?></p>
       </form>
     </section>
     <?php
@@ -519,11 +549,14 @@ function render_home(array $page): void
           <h1><?= e($page['hero_title']) ?></h1>
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) ?>">Book IT &amp; Security Review</a>
+            <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
           </div>
         </div>
         <aside class="hero__panel">
-          <p class="hero__panel-label">Built for</p>
+          <p class="hero__panel-label"><?= e($page['hero_panel_label'] ?? 'Who We Help') ?></p>
           <ul class="hero__panel-list">
             <?php foreach ($page['trust_points'] as $point): ?>
               <li><?= e($point) ?></li>
@@ -544,19 +577,36 @@ function render_home(array $page): void
     <section class="section">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">Core Services</span>
-          <h2>Practical IT support and cybersecurity services for Salt Lake City small businesses.</h2>
+          <span class="eyebrow">Who We Help</span>
+          <h2>Small Salt Lake metro offices with 5-20 users that cannot afford prolonged downtime.</h2>
         </div>
         <?php render_card_grid($page['core_services']); ?>
-        <p><a class="text-link" href="<?= e(page_href('services')) ?>">Review the full service overview</a></p>
+        <p><a class="text-link" href="<?= e(page_href('services')) ?>">Review recovery outcomes and defined scope</a></p>
       </div>
     </section>
 
     <section class="section section--alt">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">What This Work Changes</span>
-          <h2>Direct operational improvements without MSP theater.</h2>
+          <span class="eyebrow">Before Clients Call</span>
+          <h2>What usually goes wrong before downtime becomes expensive.</h2>
+        </div>
+        <div class="card-grid">
+          <?php foreach ($page['warning_signs'] as $item): ?>
+            <article class="card">
+              <h3><?= e($item['title']) ?></h3>
+              <p><?= e($item['copy']) ?></p>
+            </article>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Core Outcomes</span>
+          <h2>Verified recovery, restore-tested backups, and measurable downtime prevention.</h2>
         </div>
         <div class="card-grid">
           <?php foreach ($page['proof_strip'] as $item): ?>
@@ -572,8 +622,8 @@ function render_home(array $page): void
     <section class="section section--alt">
       <div class="container split">
         <div>
-          <span class="eyebrow">Why Bald Eagle</span>
-          <h2>Measured response, disciplined execution, and no vague hand-waving.</h2>
+          <span class="eyebrow">How We Work</span>
+          <h2>Defined scope, local accountability, and decisions tied to operational risk.</h2>
         </div>
         <div class="stack">
           <?php foreach ($page['why_cards'] as $item): ?>
@@ -590,7 +640,7 @@ function render_home(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Engagement Models</span>
-          <h2>Monthly support when systems need steady oversight. Projects when a specific problem needs to get done.</h2>
+          <h2>Start with assessment first, then choose targeted remediation or continuity monitoring.</h2>
         </div>
         <div class="comparison">
           <?php foreach ($page['engagements'] as $item): ?>
@@ -602,19 +652,30 @@ function render_home(array $page): void
             </article>
           <?php endforeach; ?>
         </div>
+        <article class="cta-box">
+          <span class="eyebrow">Primary Next Step</span>
+          <h2>Request a Risk Assessment</h2>
+          <p>Assessment value: $500, waived for qualified local businesses.</p>
+          <div class="cta-box__actions">
+            <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
+        </article>
       </div>
     </section>
 
     <section class="section section--accent">
       <div class="container split">
         <div>
-          <span class="eyebrow">Microsoft 365</span>
-          <h2><?= e($page['m365']['title']) ?></h2>
-          <p><?= e($page['m365']['copy']) ?></p>
+          <span class="eyebrow">Recovery Dependencies</span>
+          <h2><?= e($page['access_control']['title']) ?></h2>
+          <p><?= e($page['access_control']['copy']) ?></p>
         </div>
         <div class="card card--tall">
-          <?php render_feature_list($page['m365']['points']); ?>
-          <a class="button button--primary button--small" href="<?= e(page_href('microsoft-365-services')) ?>">See Microsoft 365 Services</a>
+          <?php render_feature_list($page['access_control']['points']); ?>
+          <a class="button button--primary button--small" href="<?= e(page_href('managed-it-services')) ?>">See Recovery Assurance</a>
         </div>
       </div>
     </section>
@@ -637,7 +698,7 @@ function render_home(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Process</span>
-          <h2>Assess. Stabilize. Secure. Support.</h2>
+          <h2>How the work moves from findings to verified recovery confidence.</h2>
         </div>
         <div class="process-grid">
           <?php foreach ($page['process'] as $item): ?>
@@ -655,7 +716,7 @@ function render_home(array $page): void
       <div class="container split">
         <div>
           <span class="eyebrow">FAQ</span>
-          <h2>Questions owners usually ask before they hand over critical systems.</h2>
+          <h2>Questions owners ask when downtime, ransomware, or backup uncertainty is on the table.</h2>
         </div>
         <div class="faq-list">
           <?php foreach ($page['faq_items'] as $item): ?>
@@ -687,7 +748,10 @@ function render_service_like_page(array $page): void
           <h1><?= e($page['hero_title']) ?></h1>
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>">Book IT &amp; Security Review</a>
+            <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Risk Assessment') ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -706,9 +770,6 @@ function render_service_like_page(array $page): void
           <?php render_feature_list($page['included']); ?>
         </article>
       </div>
-      <?php if (!empty($page['secondary_cta'])): ?>
-        <p><a class="text-link" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a></p>
-      <?php endif; ?>
     </section>
 
     <section class="section section--alt">
@@ -728,6 +789,26 @@ function render_service_like_page(array $page): void
       </div>
     </section>
 
+    <?php if (!empty($page['process_steps'])): ?>
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Simple Process</span>
+            <h2><?= e($page['process_heading'] ?? 'How the engagement moves from concern to action.') ?></h2>
+          </div>
+          <div class="process-grid">
+            <?php foreach ($page['process_steps'] as $item): ?>
+              <article class="process-step">
+                <span class="process-step__index"><?= e($item['step']) ?></span>
+                <h3><?= e($item['title']) ?></h3>
+                <p><?= e($item['copy']) ?></p>
+              </article>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </section>
+    <?php endif; ?>
+
     <section class="section">
       <div class="container split">
         <article class="card card--tall">
@@ -739,10 +820,73 @@ function render_service_like_page(array $page): void
           <span class="eyebrow">Next Step</span>
           <h2><?= e($page['cta_title']) ?></h2>
           <p><?= e($page['cta_copy']) ?></p>
-          <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>">Book IT &amp; Security Review</a>
+          <div class="cta-box__actions">
+            <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Risk Assessment') ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
         </article>
       </div>
     </section>
+
+    <?php if (!empty($page['assessment_checks']) && !empty($page['assessment_outputs'])): ?>
+      <section class="section section--alt">
+        <div class="container two-up">
+          <article class="card card--tall">
+            <span class="card__eyebrow">What We Check</span>
+            <h2>Controls linked directly to downtime and recovery risk.</h2>
+            <?php render_feature_list($page['assessment_checks']); ?>
+          </article>
+          <article class="card card--tall">
+            <span class="card__eyebrow">What You Receive</span>
+            <h2>Clear findings, priorities, and recovery actions.</h2>
+            <?php render_feature_list($page['assessment_outputs']); ?>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <?php if (!empty($page['assessment_findings'])): ?>
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Sample Assessment Findings</span>
+            <h2>Common breakdowns found before an outage or ransomware event.</h2>
+          </div>
+          <?php render_card_grid($page['assessment_findings']); ?>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <?php if (!empty($page['assessment_explanation'])): ?>
+      <section class="section section--alt">
+        <div class="container split">
+          <article>
+            <span class="eyebrow">Backup Validation</span>
+            <?php foreach ($page['assessment_explanation'] as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+          </article>
+          <?php if (!empty($page['assessment_pricing'])): ?>
+            <article class="cta-box">
+              <span class="eyebrow">Assessment Offer</span>
+              <h2><?= e($page['assessment_pricing']['title']) ?></h2>
+              <p><?= e($page['assessment_pricing']['copy']) ?></p>
+              <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            </article>
+          <?php endif; ?>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <?php if (!empty($page['show_inline_form'])): ?>
+      <section class="section section--accent">
+        <div class="container">
+          <?php render_contact_form('assessment-page', 'Request a Risk Assessment', 'Use this short form to request a recovery-focused assessment and get a defined next step for backup readiness, ransomware resilience, and downtime risk.'); ?>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <section class="section section--alt">
       <div class="container">
@@ -774,7 +918,7 @@ function render_services_page(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Service Stack</span>
-          <h2>Coverage for day-to-day support, infrastructure, and security work.</h2>
+          <h2>What happens after the Recovery Readiness Test.</h2>
         </div>
         <?php render_card_grid($page['service_cards']); ?>
       </div>
@@ -784,14 +928,34 @@ function render_services_page(array $page): void
       <div class="container split">
         <div>
           <span class="eyebrow">How Engagements Start</span>
-          <h2>Every engagement begins with an assessment of risk, operational friction, and immediate priorities.</h2>
+          <h2>Every engagement starts with test findings, then moves into the specific fix path your business actually needs.</h2>
         </div>
         <div class="card card--tall">
           <?php render_feature_list($page['approach']); ?>
-          <a class="button button--primary button--small" href="<?= e(page_href('contact')) ?>">Book IT &amp; Security Review</a>
+          <div class="cta-box__actions">
+            <a class="button button--primary button--small" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
     </section>
+
+    <?php if (!empty($page['final_cta'])): ?>
+      <section class="section">
+        <div class="container">
+          <article class="cta-box">
+            <span class="eyebrow">Best Next Step</span>
+            <h2><?= e($page['final_cta']['title']) ?></h2>
+            <p><?= e($page['final_cta']['copy']) ?></p>
+            <div class="cta-box__actions">
+              <a class="button button--primary" href="<?= e($page['final_cta']['href']) ?>"><?= e($page['final_cta']['label']) ?></a>
+            </div>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
     <?php
 }
 
@@ -812,7 +976,7 @@ function render_about_page(array $page): void
       <div class="container split">
         <article>
           <span class="eyebrow">Operating Standard</span>
-          <h2>Direct communication. Tight scope control. Security built into the work.</h2>
+          <h2>Direct communication, tight scope control, and recovery outcomes that can be defended.</h2>
           <?php foreach ($page['paragraphs'] as $paragraph): ?>
             <p><?= e($paragraph) ?></p>
           <?php endforeach; ?>
@@ -828,11 +992,26 @@ function render_about_page(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Where We Fit Best</span>
-          <h2>Small teams that need fast resolution and competent oversight.</h2>
+          <h2>Small offices that depend on business continuity and cannot afford drawn-out recovery.</h2>
         </div>
         <?php render_card_grid($page['fit_cards']); ?>
       </div>
     </section>
+
+    <?php if (!empty($page['final_cta'])): ?>
+      <section class="section">
+        <div class="container">
+          <article class="cta-box">
+            <span class="eyebrow">Assessment First</span>
+            <h2><?= e($page['final_cta']['title']) ?></h2>
+            <p><?= e($page['final_cta']['copy']) ?></p>
+            <div class="cta-box__actions">
+              <a class="button button--primary" href="<?= e($page['final_cta']['href']) ?>"><?= e($page['final_cta']['label']) ?></a>
+            </div>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
     <?php
 }
 
@@ -876,7 +1055,7 @@ function render_service_area_page(array $page): void
 
     <section class="section">
       <div class="container">
-        <?php render_contact_form('service-area', 'Need Salt Lake IT coverage that stays inside a clear operating radius?', 'Tell us where your office is, what is unstable, and what outcome you need.'); ?>
+        <?php render_contact_form('service-area', 'Request a Risk Assessment in the Salt Lake metro', 'Tell us where your office is and what downtime event would hurt you most.'); ?>
       </div>
     </section>
     <?php
@@ -897,9 +1076,9 @@ function render_contact_page(array $page): void
           <p class="hero__panel-label">Service Limits</p>
           <ul class="hero__panel-list">
             <li><?= e($config['service_area']) ?></li>
-            <li>Monthly support retainers</li>
-            <li>Focused project engagements</li>
-            <li>Microsoft 365 and security work</li>
+            <li>Assessment-first engagement model</li>
+            <li>Verified recovery and backup restore testing priorities</li>
+            <li>Scoped remediation, not generic MSP helpdesk sprawl</li>
           </ul>
         </aside>
       </div>
@@ -909,7 +1088,7 @@ function render_contact_page(array $page): void
       <div class="container split">
         <article>
           <span class="eyebrow">What To Send</span>
-          <h2>Enough detail to understand urgency, exposure, and business impact.</h2>
+          <h2>Enough detail to understand recovery risk, business impact, and urgency.</h2>
           <?php render_feature_list($page['contact_points']); ?>
         </article>
         <article class="card card--tall">
@@ -941,6 +1120,12 @@ function render_faq_page(array $page): void
     </section>
 
     <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Common Questions</span>
+          <h2>Answers for owners reviewing backup readiness, ransomware resilience, and continuity risk.</h2>
+        </div>
+      </div>
       <div class="container faq-list faq-list--full">
         <?php foreach ($page['faq_items'] as $item): ?>
           <details class="faq-item">
@@ -950,6 +1135,21 @@ function render_faq_page(array $page): void
         <?php endforeach; ?>
       </div>
     </section>
+
+    <?php if (!empty($page['final_cta'])): ?>
+      <section class="section section--accent">
+        <div class="container">
+          <article class="cta-box">
+            <span class="eyebrow">Next Step</span>
+            <h2><?= e($page['final_cta']['title']) ?></h2>
+            <p><?= e($page['final_cta']['copy']) ?></p>
+            <div class="cta-box__actions">
+              <a class="button button--primary" href="<?= e($page['final_cta']['href']) ?>"><?= e($page['final_cta']['label']) ?></a>
+            </div>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
     <?php
 }
 
@@ -992,7 +1192,7 @@ function render_not_found_page(array $page): void
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
             <a class="button button--primary" href="<?= e(page_href('home')) ?>">Return Home</a>
-            <a class="button button--ghost" href="<?= e(page_href('contact')) ?>">Contact Bald Eagle</a>
+            <a class="button button--ghost" href="<?= e(page_href('contact')) ?>">Request a Risk Assessment</a>
           </div>
         </div>
       </div>

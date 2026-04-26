@@ -98,6 +98,17 @@ if (!function_exists('site_config')) {
         return 'https://baldeaglenetworkservices.com';
     }
 
+    function ben_csp_nonce(): string
+    {
+        static $nonce;
+        if (is_string($nonce) && $nonce !== '') {
+            return $nonce;
+        }
+
+        $nonce = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+        return $nonce;
+    }
+
     function ben_active_config_source(): string
     {
         return __FILE__;
@@ -223,16 +234,42 @@ if (!function_exists('site_config')) {
         $siteUrl = ben_base_url();
 
         if (!headers_sent()) {
+            $nonce = ben_csp_nonce();
+            $isLocal = ben_is_local_development();
+            $isHttps = ben_scheme() === 'https';
+            $csp = [
+                "default-src 'self'",
+                "base-uri 'self'",
+                "object-src 'none'",
+                "frame-ancestors 'none'",
+                "form-action 'self'",
+                "img-src 'self' data: https:",
+                "style-src 'self'",
+                "script-src 'self' 'nonce-" . $nonce . "' https://challenges.cloudflare.com",
+                "connect-src 'self' https://challenges.cloudflare.com",
+                "frame-src 'self' https://challenges.cloudflare.com",
+                "font-src 'self' data:",
+            ];
+
+            if ($isHttps && !$isLocal) {
+                $csp[] = 'upgrade-insecure-requests';
+            }
+
+            header('Content-Security-Policy: ' . implode('; ', $csp));
             header('X-Content-Type-Options: nosniff');
             header('X-Frame-Options: SAMEORIGIN');
             header('Referrer-Policy: strict-origin-when-cross-origin');
+            header('Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()');
+            if ($isHttps && !$isLocal) {
+                header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+            }
         }
 
         $config = [
             'site_name' => 'Bald Eagle Network Services',
             'site_url' => $siteUrl,
             'prefer_php_paths' => ben_prefer_php_paths(),
-            'tagline' => 'Security-first IT support for Salt Lake businesses',
+            'tagline' => 'Recovery readiness testing for Salt Lake metro small businesses',
             'business_email' => ben_env('BUSINESS_EMAIL', ''),
             'business_phone' => ben_env('BUSINESS_PHONE', ''),
             'contact_to_email' => ben_env('CONTACT_TO_EMAIL', ''),
@@ -257,17 +294,17 @@ if (!function_exists('site_config')) {
             'suitecrm_source' => ben_env('SUITECRM_SOURCE', 'Website'),
             'suitecrm_status' => ben_env('SUITECRM_STATUS', 'New'),
             'allowed_service_types' => [
-                'managed-it' => 'Managed IT Services',
-                'microsoft-365' => 'Microsoft 365 Services',
-                'network-security' => 'Network Security',
-                'backup-dr' => 'Backup & Disaster Recovery',
-                'cabling-wifi' => 'Network Cabling & Wi-Fi',
-                'voip' => 'VoIP Business Phone Systems',
-                'risk-assessment' => 'Security Risk Assessments',
-                'compliance' => 'Compliance Readiness',
-                'endpoint-management' => 'Endpoint Management',
-                'one-off-project' => 'One-Off IT Project',
-                'other' => 'Other',
+                'risk-assessment' => 'Recovery Readiness Test',
+                'backup-dr' => 'Backup Recovery Verification',
+                'managed-it' => 'Recovery Assurance Planning',
+                'microsoft-365' => 'Identity & Access Review',
+                'network-security' => 'Network Security Hardening',
+                'cabling-wifi' => 'Office Network Dependency Review',
+                'voip' => 'Communications Continuity Review',
+                'compliance' => 'Continuity & Control Review',
+                'endpoint-management' => 'Workstation Recovery Readiness',
+                'one-off-project' => 'Recovery Planning Project',
+                'other' => 'General Consultation',
             ],
         ];
 

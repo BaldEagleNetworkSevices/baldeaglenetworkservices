@@ -497,3 +497,46 @@ h2 {
     padding: 2rem;
   }
 }
+
+@media (max-width: 720px) {
+  .lp-shell {
+    padding: 1.25rem 0 3rem;
+  }
+
+  .lp-hero {
+    padding-top: 0.75rem;
+    gap: 1.2rem;
+  }
+
+  .lp-hero__content {
+    padding: 1.35rem;
+  }
+
+  h1 {
+    font-size: clamp(1.9rem, 9.4vw, 2.7rem);
+    line-height: 0.9;
+    max-width: 16ch;
+  }
+
+  .lp-lede {
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .lp-actions {
+    margin-top: 1rem;
+  }
+
+  .lp-actions .lp-button {
+    width: 100%;
+  }
+
+  .lp-section {
+    padding-top: 2.6rem;
+  }
+
+  .lp-section--dark {
+    padding: 2.6rem 1rem 0;
+    border-radius: 20px;
+  }
+}

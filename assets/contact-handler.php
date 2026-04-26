@@ -4,11 +4,25 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/includes/functions.php';
 require_once dirname(__DIR__) . '/includes/crm.php';
 
+header('Cache-Control: no-store, max-age=0');
+header('X-Robots-Tag: noindex, nofollow');
+
 function wants_json_response(): bool
 {
     $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
     $requestedWith = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
     return str_contains($accept, 'application/json') || $requestedWith === 'fetch';
+}
+
+function allowed_form_content_type(): bool
+{
+    $contentType = strtolower(trim((string) ($_SERVER['CONTENT_TYPE'] ?? '')));
+    if ($contentType === '') {
+        return true;
+    }
+
+    return str_starts_with($contentType, 'application/x-www-form-urlencoded')
+        || str_starts_with($contentType, 'multipart/form-data');
 }
 
 function respond_form(int $status, array $payload, ?string $redirect = null): never
@@ -121,6 +135,9 @@ function notify_submission(array $payload): void
         'Company: ' . $payload['company'],
         'Email: ' . $payload['email'],
         'Phone: ' . $payload['phone'],
+        'Preferred Contact: ' . ($payload['preferred_contact'] !== '' ? $payload['preferred_contact'] : 'Not provided'),
+        'Employee Count: ' . ($payload['employee_count'] !== '' ? $payload['employee_count'] : 'Not provided'),
+        'Main Concern: ' . $payload['main_concern'],
         'Service: ' . $payload['service_type_label'],
         'Context: ' . $payload['form_context'],
         'Message:',
@@ -137,7 +154,12 @@ function notify_submission(array $payload): void
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+    header('Allow: POST');
     respond_form(405, ['success' => false, 'message' => 'Method not allowed.']);
+}
+
+if (!allowed_form_content_type()) {
+    respond_form(415, ['success' => false, 'message' => 'Unsupported submission format.']);
 }
 
 ensure_session_started();
@@ -148,7 +170,10 @@ $input = [
     'company' => cleaned_text($_POST['company'] ?? '', 160),
     'email' => cleaned_text($_POST['email'] ?? '', 200),
     'phone' => cleaned_text($_POST['phone'] ?? '', 50),
+    'preferred_contact' => cleaned_text($_POST['preferred_contact'] ?? '', 20),
     'service_type' => cleaned_text($_POST['service_type'] ?? '', 80),
+    'employee_count' => cleaned_text($_POST['employee_count'] ?? '', 20),
+    'main_concern' => cleaned_text($_POST['main_concern'] ?? '', 80),
     'message' => cleaned_text($_POST['message'] ?? '', 4000),
     'website' => cleaned_text($_POST['website'] ?? '', 80),
     'form_context' => cleaned_text($_POST['form_context'] ?? 'general', 80),
@@ -183,7 +208,10 @@ if ($input['phone'] !== '' && !preg_match('/^[0-9\-\+\(\)\.\s]{7,25}$/', $input[
     $errors['phone'] = 'Enter a valid phone number or leave it blank.';
 }
 if (!array_key_exists($input['service_type'], site_config()['allowed_service_types'])) {
-    $errors['service_type'] = 'Select a valid service.';
+    $errors['service_type'] = 'Select a valid assessment type.';
+}
+if (!in_array($input['main_concern'], ['Backup recovery', 'Account access', 'Ransomware', 'Downtime', 'Not sure'], true)) {
+    $errors['main_concern'] = 'Select the main concern.';
 }
 if ($input['message'] === '') {
     $errors['message'] = 'Provide a short summary of the issue, project, or risk.';
@@ -206,8 +234,11 @@ $payload = [
     'company' => $input['company'],
     'email' => $input['email'],
     'phone' => $input['phone'],
+    'preferred_contact' => $input['preferred_contact'],
     'service_type' => $input['service_type'],
     'service_type_label' => site_config()['allowed_service_types'][$input['service_type']],
+    'employee_count' => $input['employee_count'],
+    'main_concern' => $input['main_concern'],
     'form_context' => $input['form_context'],
     'message' => $input['message'],
 ];
@@ -251,6 +282,6 @@ clear_old_input();
 
 respond_form(200, [
     'success' => true,
-    'message' => 'Request received. Bald Eagle will follow up with the next step.',
+    'message' => 'Risk assessment request received. Bald Eagle will follow up with next steps.',
     'crm_status' => 'queued',
 ]);

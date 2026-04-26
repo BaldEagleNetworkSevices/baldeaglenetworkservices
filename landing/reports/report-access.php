@@ -63,6 +63,9 @@ if (basename((string) ($_SERVER['SCRIPT_FILENAME'] ?? '')) === 'report-access.ph
         exit('This report link is invalid or expired.');
     }
 
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('Referrer-Policy: no-referrer');
     header('Content-Type: application/octet-stream');
     header('Content-Length: ' . (string) filesize($path));
     header('Content-Disposition: attachment; filename="' . basename($path) . '"');

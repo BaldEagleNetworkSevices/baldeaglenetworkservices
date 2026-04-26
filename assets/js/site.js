@@ -103,6 +103,9 @@
       const status = form.querySelector('[data-form-status]');
       const button = form.querySelector('[data-submit-button]');
       const errors = form.querySelectorAll('[data-field-error]');
+      form.querySelectorAll('input, select, textarea').forEach((field) => {
+        field.removeAttribute('aria-invalid');
+      });
       errors.forEach((node) => {
         node.textContent = '';
       });
@@ -114,6 +117,7 @@
 
       if (button) {
         button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
         button.dataset.originalLabel = button.textContent || '';
         button.textContent = 'Sending...';
       }
@@ -128,13 +132,22 @@
           }
         });
 
-        const data = await response.json();
+        let data = {};
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          data = {};
+        }
         if (!response.ok || !data.success) {
           if (data.errors) {
             Object.entries(data.errors).forEach(([field, message]) => {
               const errorNode = form.querySelector(`[data-field-error="${field}"]`);
               if (errorNode) {
                 errorNode.textContent = String(message);
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input instanceof HTMLElement) {
+                  input.setAttribute('aria-invalid', 'true');
+                }
               }
             });
           }
@@ -165,6 +178,7 @@
         if (status) {
           status.classList.add('is-success');
           status.textContent = data.message || 'Request received.';
+          status.focus?.();
         }
       } catch (error) {
         if (status) {
@@ -174,6 +188,7 @@
       } finally {
         if (button) {
           button.disabled = false;
+          button.removeAttribute('aria-busy');
           button.textContent = button.dataset.originalLabel || 'Submit';
         }
       }
