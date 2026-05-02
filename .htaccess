@@ -11,6 +11,7 @@ ErrorDocument 404 /404.php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteRule "(^|/)\.(?!well-known(?:/|$))" - [F]
   RewriteRule ^test\.php$ - [G,L,NC]
   RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
   RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
