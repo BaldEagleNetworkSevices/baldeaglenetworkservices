@@ -57,3 +57,5 @@ verify-contact-flow.sh
 
 # Test artifacts
 git-push-test.txt
+*.smbdelete*
+.*
