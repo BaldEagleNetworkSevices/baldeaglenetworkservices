@@ -7,31 +7,31 @@ $config = site_config();
       <div class="container footer-grid">
         <div>
           <p class="footer-title"><?= e($config['site_name']) ?></p>
-          <p class="footer-copy">Recovery readiness testing, verified backup restore validation, and ransomware resilience support for Salt Lake metro offices.</p>
+          <p class="footer-copy">Recovery-first IT for small businesses that need tested backups, verified restores, and direct accountability when systems fail.</p>
         </div>
         <div>
-          <p class="footer-title">Core Pages</p>
+          <p class="footer-title">Recovery Services</p>
           <ul class="footer-list">
-            <li><a href="<?= e(page_href('services')) ?>">Services</a></li>
+            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Recovery Assessment</a></li>
             <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Backup &amp; Recovery</a></li>
-            <li><a href="<?= e(page_href('managed-it-services')) ?>">Recovery Planning</a></li>
-            <li><a href="<?= e(page_href('service-area')) ?>">Service Area</a></li>
+            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">Monthly Verification</a></li>
+            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Recovery Verification</a></li>
+            <li><a href="<?= e(page_href('network-security')) ?>">Security Hardening</a></li>
           </ul>
         </div>
         <div>
-          <p class="footer-title">Continuity Focus</p>
+          <p class="footer-title">Recovery Example</p>
           <ul class="footer-list">
-            <li><a href="<?= e(page_href('network-security')) ?>">Security Hardening</a></li>
-            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">Stability &amp; Monitoring</a></li>
-            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Risk Assessment</a></li>
-            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Recovery Verification</a></li>
+            <li><a href="<?= e(page_href('case-study-backup-recovery-failure')) ?>">Backup Existed. Recovery Failed.</a></li>
+            <li><a href="<?= e(page_href('about')) ?>">About</a></li>
+            <li><a href="<?= e(page_href('faq')) ?>">FAQ</a></li>
+            <li><a href="<?= e(page_href('contact')) ?>">Contact</a></li>
           </ul>
         </div>
         <div>
           <p class="footer-title">Company</p>
           <ul class="footer-list">
-            <li><a href="<?= e(page_href('about')) ?>">About</a></li>
-            <li><a href="<?= e(page_href('faq')) ?>">FAQ</a></li>
+            <li><a href="<?= e(page_href('service-area')) ?>">Service Area</a></li>
             <li><a href="<?= e(page_href('privacy-policy')) ?>">Privacy Policy</a></li>
             <li><a href="<?= e(page_href('terms')) ?>">Terms</a></li>
           </ul>

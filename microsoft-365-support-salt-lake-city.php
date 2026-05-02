@@ -1,5 +1,0 @@
-<?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/includes/functions.php';
-render_site_page(page_definition('microsoft-365-support-salt-lake-city'));

@@ -8,6 +8,7 @@ $config = site_config();
 $ogImage = $page['og_image'] ?? absolute_url(asset_path('img/og-default.jpg'));
 $navItems = [
     'services' => 'Services',
+    'case-study-backup-recovery-failure' => 'Case Study',
     'about' => 'About',
     'service-area' => 'Service Area',
     'contact' => 'Contact',
@@ -46,12 +47,12 @@ $navItems = [
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="site-shell">
     <header class="site-header" data-site-header>
-      <div class="container header-bar">
+      <div class="container container--header header-bar">
         <a class="brand" href="<?= e(page_href('home')) ?>" aria-label="<?= e($config['site_name']) ?> home">
           <span class="brand__mark" aria-hidden="true">BE</span>
           <span class="brand__text">
             <strong><?= e($config['site_name']) ?></strong>
-            <small><?= e($config['tagline']) ?></small>
+            <small>Recovery for Salt Lake small businesses</small>
           </span>
         </a>
 
@@ -64,7 +65,7 @@ $navItems = [
         </nav>
 
         <div class="header-actions">
-          <a class="button button--primary button--small desktop-cta" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+          <a class="button button--primary button--small desktop-cta" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Recovery Assessment</a>
           <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-nav-toggle>
             <span class="nav-toggle__label">Menu</span>
             <span class="nav-toggle__bars" aria-hidden="true">
@@ -94,6 +95,6 @@ $navItems = [
             </ul>
           </div>
         <?php endforeach; ?>
-        <a class="button button--primary mobile-menu__cta" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+        <a class="button button--primary mobile-menu__cta" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Request a Recovery Assessment</a>
       </div>
     </aside>

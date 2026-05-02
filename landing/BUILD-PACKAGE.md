@@ -6,7 +6,7 @@ Priority delivery is not considered launch-ready without server-enforced Turnsti
 
 # 2. Landing Page Strategy
 
-The page sells a narrow product with a clear business outcome: show the buyer what the public internet can already see about their business domain. The copy avoids generic MSP language and keeps the offer bounded.
+The page sells a narrow product with a clear business outcome: show the buyer what the public internet can already see about their business domain. The copy avoids generic provider language and keeps the offer bounded.
 
 Conversion strategy:
 

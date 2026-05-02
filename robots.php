@@ -18,4 +18,5 @@ echo "Disallow: /landing/forms/\n";
 echo "Disallow: /landing/config/\n";
 echo "Disallow: /landing/reports/report-access.php\n";
 echo "Disallow: /assets/contact-handler.php\n";
+echo "Disallow: /waiting_pages/\n";
 echo 'Sitemap: ' . absolute_url('/sitemap.xml') . "\n";

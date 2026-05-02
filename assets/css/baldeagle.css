@@ -88,6 +88,10 @@ button {
   margin: 0 auto;
 }
 
+.container--header {
+  width: min(calc(100% - 2rem), 1320px);
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -101,7 +105,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  gap: 1rem;
+  flex-wrap: nowrap;
   min-height: 5.25rem;
 }
 
@@ -110,6 +115,7 @@ button {
   align-items: center;
   gap: 0.9rem;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .brand__mark {
@@ -136,11 +142,13 @@ button {
   font-size: 1.2rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .brand__text small {
   color: var(--muted);
   font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .desktop-nav ul,
@@ -156,13 +164,24 @@ button {
 .desktop-nav ul {
   display: flex;
   align-items: center;
-  gap: 1.35rem;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+
+.desktop-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.desktop-nav li {
+  flex: 0 0 auto;
 }
 
 .desktop-nav a {
   color: var(--muted);
   font-size: 0.95rem;
   transition: color 160ms ease;
+  white-space: nowrap;
 }
 
 .desktop-nav a:hover,
@@ -173,7 +192,13 @@ button {
 .header-actions {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
   gap: 0.8rem;
+}
+
+.header-actions .button {
+  white-space: nowrap;
 }
 
 .button {
@@ -215,6 +240,30 @@ button {
   min-height: 2.6rem;
   padding: 0.7rem 1rem;
   font-size: 0.92rem;
+}
+
+@media (min-width: 961px) {
+  .header-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 1.2rem;
+  }
+
+  .brand {
+    max-width: 24rem;
+  }
+
+  .desktop-nav {
+    justify-self: center;
+  }
+
+  .desktop-nav ul {
+    justify-content: center;
+  }
+
+  .header-actions {
+    justify-self: end;
+  }
 }
 
 .nav-toggle,
@@ -782,11 +831,7 @@ button {
 
 @media (max-width: 1080px) {
   .desktop-nav ul {
-    gap: 0.95rem;
-  }
-
-  .desktop-cta {
-    display: none;
+    gap: 0.8rem;
   }
 
   .hero__content h1 {
@@ -796,6 +841,10 @@ button {
 
 @media (max-width: 960px) {
   .desktop-nav {
+    display: none;
+  }
+
+  .desktop-cta {
     display: none;
   }
 

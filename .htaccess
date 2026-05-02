@@ -15,6 +15,13 @@ ErrorDocument 404 /404.php
   RewriteRule ^(?:app|deploy|docs|storage|systemd)(?:/|$) - [F,L,NC]
   RewriteRule \.(?:live|prod|md|sh|py)$ - [F,L,NC]
 
+  RewriteRule ^microsoft-365-services(?:\.php)?$ /recovery-assessment [R=301,L,NC,QSA]
+  RewriteRule ^microsoft-365-support-salt-lake-city(?:\.php)?$ /recovery-assessment [R=301,L,NC,QSA]
+  RewriteRule ^managed-it-services(?:\.php)?$ /monthly-it-support-plans [R=301,L,NC,QSA]
+  RewriteRule ^one-off-it-projects(?:\.php)?$ /recovery-assessment [R=301,L,NC,QSA]
+  RewriteRule ^network-cabling-wifi(?:\.php)?$ /recovery-assessment [R=301,L,NC,QSA]
+  RewriteRule ^it-services-salt-lake-city(?:\.php)?$ /recovery-assessment [R=301,L,NC,QSA]
+
   RewriteCond %{HTTP_HOST} ^(?:baldeaglenetworkservices\.com|www\.baldeaglenetworkservices\.com)$ [NC]
   RewriteCond %{THE_REQUEST} \s/+index\.php(?:[?\s]|$) [NC]
   RewriteRule ^index\.php$ / [R=301,L,QSA]

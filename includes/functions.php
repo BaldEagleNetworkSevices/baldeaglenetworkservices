@@ -50,29 +50,20 @@ function page_catalog(): array
     $pages = [
         'home' => ['path' => '/', 'label' => 'Home'],
         'services' => ['path' => '/services', 'label' => 'Services'],
-        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Continuity Monitoring'],
-        'projects' => ['path' => '/one-off-it-projects', 'label' => 'Recovery Projects'],
+        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly Backup Verification'],
         'about' => ['path' => '/about', 'label' => 'About'],
+        'case-study-backup-recovery-failure' => ['path' => '/case-study-backup-recovery-failure', 'label' => 'Case Study'],
+        'case-study-security-recovery-failure' => ['path' => '/case-study-security-recovery-failure', 'label' => 'Security Recovery Case Study'],
         'service-area' => ['path' => '/service-area', 'label' => 'Service Area'],
-        'contact' => ['path' => '/contact', 'label' => 'Request Risk Assessment'],
+        'contact' => ['path' => '/contact', 'label' => 'Request Recovery Assessment'],
         'faq' => ['path' => '/faq', 'label' => 'FAQ'],
         'privacy-policy' => ['path' => '/privacy-policy', 'label' => 'Privacy Policy'],
         'terms' => ['path' => '/terms', 'label' => 'Terms'],
-        'managed-it-services' => ['path' => '/managed-it-services', 'label' => 'Recovery Assurance'],
         'network-security' => ['path' => '/network-security', 'label' => 'Security Hardening'],
-        'microsoft-365-services' => ['path' => '/microsoft-365-services', 'label' => 'Identity & Access Review'],
         'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery', 'label' => 'Backup & Disaster Recovery'],
-        'network-cabling-wifi' => ['path' => '/network-cabling-wifi', 'label' => 'Office Network Dependencies'],
-        'voip-business-phone-systems' => ['path' => '/voip-business-phone-systems', 'label' => 'Communications Continuity'],
-        'security-risk-assessments' => ['path' => '/security-risk-assessments', 'label' => 'Recovery Readiness Test'],
+        'security-risk-assessments' => ['path' => '/recovery-assessment', 'label' => 'Recovery Assessment'],
         'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Continuity & Control Review'],
-        'endpoint-management' => ['path' => '/endpoint-management', 'label' => 'Workstation Recovery Readiness'],
-        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Stability & Monitoring'],
-        'one-off-it-projects' => ['path' => '/one-off-it-projects', 'label' => 'Recovery Planning Projects'],
-        'it-services-salt-lake-city' => ['path' => '/it-services-salt-lake-city', 'label' => 'Recovery Support Salt Lake City'],
-        'managed-it-support-salt-lake-city' => ['path' => '/managed-it-support-salt-lake-city', 'label' => 'Continuity Monitoring Salt Lake City'],
-        'microsoft-365-support-salt-lake-city' => ['path' => '/microsoft-365-support-salt-lake-city', 'label' => 'Account Access Controls Salt Lake City'],
-        'cybersecurity-salt-lake-city' => ['path' => '/cybersecurity-salt-lake-city', 'label' => 'Ransomware Resilience Salt Lake City'],
+        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly Backup and Recovery Verification'],
     ];
 
     return $pages;
@@ -102,6 +93,15 @@ function page_href(string $slug): string
 function page_url(string $slug): string
 {
     return absolute_url(page_href($slug));
+}
+
+function recovery_assessment_href(string $service = 'risk-assessment', string $anchor = ''): string
+{
+    $href = page_href('security-risk-assessments');
+    $query = $service !== '' ? '?service=' . urlencode($service) : '';
+    $fragment = $anchor !== '' ? '#' . ltrim($anchor, '#') : '';
+
+    return $href . $query . $fragment;
 }
 
 function landing_page_href(string $slug): string
@@ -291,6 +291,22 @@ function base_schemas(array $page): array
         ],
     ];
 
+    if (!empty($page['schema_person']) && is_array($page['schema_person'])) {
+        $schemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Person',
+            'name' => (string) ($page['schema_person']['name'] ?? ''),
+            'jobTitle' => (string) ($page['schema_person']['jobTitle'] ?? ''),
+            'description' => (string) ($page['schema_person']['description'] ?? ''),
+            'worksFor' => [
+                '@type' => 'LocalBusiness',
+                'name' => $config['site_name'],
+                'url' => $config['site_url'],
+            ],
+            'url' => $page['canonical'],
+        ];
+    }
+
     if (($page['slug'] ?? '') !== 'home') {
         $schemas[] = [
             '@context' => 'https://schema.org',
@@ -365,10 +381,10 @@ function navigation_groups(): array
     return [
         'Core Services' => [
             'backup-disaster-recovery',
-            'managed-it-services',
             'security-risk-assessments',
             'monthly-it-support-plans',
             'network-security',
+            'case-study-backup-recovery-failure',
         ],
         'Company' => [
             'about',
@@ -384,10 +400,11 @@ function contact_service_options(): array
     $allowed = site_config()['allowed_service_types'];
     $preferredKeys = [
         'risk-assessment',
+        'backup-recovery-failure',
+        'security-recovery-risk',
         'backup-dr',
-        'microsoft-365',
+        'monthly-backup-verification',
         'network-security',
-        'managed-it',
         'compliance',
         'other',
     ];
@@ -419,7 +436,7 @@ function service_cards(array $slugs): array
     return $content;
 }
 
-function render_contact_form(string $context = 'general', string $heading = 'Request a Risk Assessment', string $copy = 'Backups are not recovery. Use this quick recovery check to verify what can actually be restored before downtime proves otherwise.'): void
+function render_contact_form(string $context = 'general', string $heading = 'Start a Recovery Assessment', string $copy = 'A Recovery Assessment checks whether your backups, restore process, and failure response are actually usable.'): void
 {
     $flash = pull_flash();
     $statusClass = 'form-response';
@@ -440,7 +457,7 @@ function render_contact_form(string $context = 'general', string $heading = 'Req
     ?>
     <section class="contact-panel" id="contact-form">
       <div class="contact-panel__intro">
-        <span class="eyebrow">Quick Recovery Check</span>
+        <span class="eyebrow">Recovery Assessment</span>
         <h2><?= e($heading) ?></h2>
         <p><?= e($copy) ?></p>
       </div>
@@ -501,7 +518,7 @@ function render_contact_form(string $context = 'general', string $heading = 'Req
           </div>
         </div>
         <div class="form-actions">
-          <button class="button button--primary" type="submit" data-submit-button>Request a Risk Assessment</button>
+          <button class="button button--primary" type="submit" data-submit-button>Request a Recovery Assessment</button>
           <p class="form-meta">Salt Lake metro only. Best fit: small offices that need tested backups, recovery planning, or ransomware resilience.</p>
         </div>
         <p class="<?= e($statusClass) ?>" aria-live="polite" role="status" tabindex="-1" data-form-status><?= e($statusMessage) ?></p>
@@ -549,7 +566,7 @@ function render_home(array $page): void
           <h1><?= e($page['hero_title']) ?></h1>
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <a class="button button--primary" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Request a Recovery Assessment</a>
             <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
               <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
             <?php endif; ?>
@@ -581,9 +598,28 @@ function render_home(array $page): void
           <h2>Small Salt Lake metro offices with 5-20 users that cannot afford prolonged downtime.</h2>
         </div>
         <?php render_card_grid($page['core_services']); ?>
-        <p><a class="text-link" href="<?= e(page_href('services')) ?>">Review recovery outcomes and defined scope</a></p>
+        <p><a class="text-link" href="<?= e(page_href('services')) ?>">See what happens after the assessment</a></p>
       </div>
     </section>
+
+    <?php if (!empty($page['founder_section'])): ?>
+      <section class="section">
+        <div class="container split">
+          <article>
+            <span class="eyebrow"><?= e($page['founder_section']['eyebrow']) ?></span>
+            <h2><?= e($page['founder_section']['title']) ?></h2>
+            <?php foreach ($page['founder_section']['paragraphs'] as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+            <a class="button button--ghost button--small" href="<?= e($page['founder_section']['cta_href']) ?>"><?= e($page['founder_section']['cta_label']) ?></a>
+          </article>
+          <article class="card card--tall">
+            <span class="card__eyebrow"><?= e($page['founder_section']['card_title']) ?></span>
+            <?php render_feature_list($page['founder_section']['card_points']); ?>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <section class="section section--alt">
       <div class="container">
@@ -619,6 +655,33 @@ function render_home(array $page): void
       </div>
     </section>
 
+    <?php if (!empty($page['case_study_block'])): ?>
+      <section class="section">
+        <div class="container split">
+          <article>
+            <span class="eyebrow"><?= e($page['case_study_block']['eyebrow']) ?></span>
+            <h2><?= e($page['case_study_block']['title']) ?></h2>
+            <?php foreach ($page['case_study_block']['paragraphs'] as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+            <div class="cta-box__actions">
+              <a class="button button--ghost button--small" href="<?= e($page['case_study_block']['href']) ?>"><?= e($page['case_study_block']['label']) ?></a>
+              <?php if (!empty($page['case_study_block']['secondary_href']) && !empty($page['case_study_block']['secondary_label'])): ?>
+                <a class="button button--ghost button--small" href="<?= e($page['case_study_block']['secondary_href']) ?>"><?= e($page['case_study_block']['secondary_label']) ?></a>
+              <?php endif; ?>
+            </div>
+          </article>
+          <article class="card card--tall">
+            <span class="card__eyebrow"><?= e($page['case_study_block']['card_title']) ?></span>
+            <?php if (!empty($page['case_study_block']['card_copy'])): ?>
+              <p><?= e($page['case_study_block']['card_copy']) ?></p>
+            <?php endif; ?>
+            <?php render_feature_list($page['case_study_block']['points']); ?>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
+
     <section class="section section--alt">
       <div class="container split">
         <div>
@@ -640,7 +703,7 @@ function render_home(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Engagement Models</span>
-          <h2>Start with assessment first, then choose targeted remediation or continuity monitoring.</h2>
+          <h2>Start by finding out what fails. Then fix it, enforce it, or monitor it.</h2>
         </div>
         <div class="comparison">
           <?php foreach ($page['engagements'] as $item): ?>
@@ -653,11 +716,11 @@ function render_home(array $page): void
           <?php endforeach; ?>
         </div>
         <article class="cta-box">
-          <span class="eyebrow">Primary Next Step</span>
-          <h2>Request a Risk Assessment</h2>
-          <p>Assessment value: $500, waived for qualified local businesses.</p>
+          <span class="eyebrow">Recommended Action</span>
+          <h2>Start with a Recovery Assessment.</h2>
+          <p>If recovery has not been tested, failure is only delayed. A Recovery Assessment shows what can be restored, what fails, and what has to be fixed first.</p>
           <div class="cta-box__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <a class="button button--primary" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Request a Recovery Assessment</a>
             <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
               <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
             <?php endif; ?>
@@ -675,7 +738,7 @@ function render_home(array $page): void
         </div>
         <div class="card card--tall">
           <?php render_feature_list($page['access_control']['points']); ?>
-          <a class="button button--primary button--small" href="<?= e(page_href('managed-it-services')) ?>">See Recovery Assurance</a>
+          <a class="button button--primary button--small" href="<?= e(page_href('security-risk-assessments')) ?>">Identify Recovery Dependencies</a>
         </div>
       </div>
     </section>
@@ -748,7 +811,7 @@ function render_service_like_page(array $page): void
           <h1><?= e($page['hero_title']) ?></h1>
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Risk Assessment') ?></a>
+            <a class="button button--primary" href="<?= e(recovery_assessment_href($page['contact_service_type'], 'contact-form')) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Recovery Assessment') ?></a>
             <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
               <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
             <?php endif; ?>
@@ -821,7 +884,7 @@ function render_service_like_page(array $page): void
           <h2><?= e($page['cta_title']) ?></h2>
           <p><?= e($page['cta_copy']) ?></p>
           <div class="cta-box__actions">
-            <a class="button button--primary" href="<?= e(page_href('contact')) . '?service=' . urlencode($page['contact_service_type']) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Risk Assessment') ?></a>
+            <a class="button button--primary" href="<?= e(recovery_assessment_href($page['contact_service_type'], 'contact-form')) ?>"><?= e($page['primary_cta_label'] ?? 'Request a Recovery Assessment') ?></a>
             <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
               <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
             <?php endif; ?>
@@ -873,7 +936,7 @@ function render_service_like_page(array $page): void
               <span class="eyebrow">Assessment Offer</span>
               <h2><?= e($page['assessment_pricing']['title']) ?></h2>
               <p><?= e($page['assessment_pricing']['copy']) ?></p>
-              <a class="button button--primary" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+              <a class="button button--primary" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Start a Recovery Assessment</a>
             </article>
           <?php endif; ?>
         </div>
@@ -883,7 +946,7 @@ function render_service_like_page(array $page): void
     <?php if (!empty($page['show_inline_form'])): ?>
       <section class="section section--accent">
         <div class="container">
-          <?php render_contact_form('assessment-page', 'Request a Risk Assessment', 'Use this short form to request a recovery-focused assessment and get a defined next step for backup readiness, ransomware resilience, and downtime risk.'); ?>
+          <?php render_contact_form('assessment-page', 'Start a Recovery Assessment', 'A Recovery Assessment checks what can be restored, what fails during an outage, and what has to be fixed before it matters.'); ?>
         </div>
       </section>
     <?php endif; ?>
@@ -918,7 +981,7 @@ function render_services_page(array $page): void
       <div class="container">
         <div class="section-heading">
           <span class="eyebrow">Service Stack</span>
-          <h2>What happens after the Recovery Readiness Test.</h2>
+          <h2>What happens after the Recovery Assessment.</h2>
         </div>
         <?php render_card_grid($page['service_cards']); ?>
       </div>
@@ -933,7 +996,7 @@ function render_services_page(array $page): void
         <div class="card card--tall">
           <?php render_feature_list($page['approach']); ?>
           <div class="cta-box__actions">
-            <a class="button button--primary button--small" href="<?= e(page_href('contact')) ?>?service=risk-assessment">Request a Risk Assessment</a>
+            <a class="button button--primary button--small" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Start a Recovery Assessment</a>
             <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
               <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
             <?php endif; ?>
@@ -961,6 +1024,7 @@ function render_services_page(array $page): void
 
 function render_about_page(array $page): void
 {
+    $sections = $page['about_sections'] ?? [];
     ?>
     <section class="hero hero--interior">
       <div class="container hero__layout hero__layout--single">
@@ -968,6 +1032,12 @@ function render_about_page(array $page): void
           <span class="eyebrow"><?= e($page['hero_kicker']) ?></span>
           <h1><?= e($page['hero_title']) ?></h1>
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="<?= e($page['final_cta']['href']) ?>"><?= e($page['final_cta']['label']) ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
     </section>
@@ -975,15 +1045,18 @@ function render_about_page(array $page): void
     <section class="section">
       <div class="container split">
         <article>
-          <span class="eyebrow">Operating Standard</span>
-          <h2>Direct communication, tight scope control, and recovery outcomes that can be defended.</h2>
-          <?php foreach ($page['paragraphs'] as $paragraph): ?>
+          <span class="eyebrow">About</span>
+          <h2><?= e($sections[0]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[0]['paragraphs'] ?? []) as $paragraph): ?>
             <p><?= e($paragraph) ?></p>
           <?php endforeach; ?>
         </article>
         <article class="card card--tall">
-          <span class="card__eyebrow">What Clients Value</span>
-          <?php render_feature_list($page['principles']); ?>
+          <span class="card__eyebrow">Direct Accountability</span>
+          <h2><?= e($sections[1]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[1]['paragraphs'] ?? []) as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
         </article>
       </div>
     </section>
@@ -991,10 +1064,79 @@ function render_about_page(array $page): void
     <section class="section section--alt">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">Where We Fit Best</span>
-          <h2>Small offices that depend on business continuity and cannot afford drawn-out recovery.</h2>
+          <span class="eyebrow">Background</span>
+          <h2>Experience and security priorities shaped by direct hands-on support work.</h2>
+        </div>
+        <div class="two-up">
+          <article class="card card--tall">
+            <span class="card__eyebrow">Experience</span>
+            <h2><?= e($sections[2]['title'] ?? '') ?></h2>
+            <?php foreach (($sections[2]['paragraphs'] ?? []) as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+          </article>
+          <article class="card card--tall">
+            <span class="card__eyebrow">Security Standard</span>
+            <h2><?= e($sections[3]['title'] ?? '') ?></h2>
+            <?php foreach (($sections[3]['paragraphs'] ?? []) as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Best Fit</span>
+          <h2><?= e($sections[4]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[4]['paragraphs'] ?? []) as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">How Work Moves</span>
+          <h2><?= e($sections[5]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[5]['paragraphs'] ?? []) as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container two-up">
+        <article class="card card--tall">
+          <span class="card__eyebrow">Credentials</span>
+          <h2><?= e($sections[6]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[6]['paragraphs'] ?? []) as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="cta-box">
+          <span class="eyebrow">Ownership</span>
+          <h2><?= e($sections[7]['title'] ?? '') ?></h2>
+          <?php foreach (($sections[7]['paragraphs'] ?? []) as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+          <div class="cta-box__actions">
+            <a class="button button--primary button--small" href="<?= e($page['final_cta']['href']) ?>"><?= e($page['final_cta']['label']) ?></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">At A Glance</span>
+          <h2>Direct handling, security-first priorities, and clear fit for small businesses.</h2>
         </div>
         <?php render_card_grid($page['fit_cards']); ?>
+        <?php if (!empty($page['related_links'])): ?>
+          <p>See also <a class="text-link" href="<?= e(page_href('security-risk-assessments')) ?>">the Recovery Assessment</a>, <a class="text-link" href="<?= e(page_href('monthly-it-support-plans')) ?>">monthly backup verification</a>, and <a class="text-link" href="<?= e(page_href('backup-disaster-recovery')) ?>">backup readiness</a>.</p>
+        <?php endif; ?>
       </div>
     </section>
 
@@ -1055,7 +1197,7 @@ function render_service_area_page(array $page): void
 
     <section class="section">
       <div class="container">
-        <?php render_contact_form('service-area', 'Request a Risk Assessment in the Salt Lake metro', 'Tell us where your office is and what downtime event would hurt you most.'); ?>
+        <?php render_contact_form('service-area', 'Request a Recovery Assessment', 'Tell us where your office is, what system cannot stay down, and whether backup, ransomware, or access risk is the main concern.'); ?>
       </div>
     </section>
     <?php
@@ -1078,7 +1220,7 @@ function render_contact_page(array $page): void
             <li><?= e($config['service_area']) ?></li>
             <li>Assessment-first engagement model</li>
             <li>Verified recovery and backup restore testing priorities</li>
-            <li>Scoped remediation, not generic MSP helpdesk sprawl</li>
+            <li>Scoped remediation, not support-queue sprawl</li>
           </ul>
         </aside>
       </div>
@@ -1181,6 +1323,195 @@ function render_legal_page(array $page): void
     <?php
 }
 
+function render_recovery_assessment_page(array $page): void
+{
+    ?>
+    <section class="hero hero--interior">
+      <div class="container hero__layout hero__layout--single">
+        <div class="hero__content">
+          <span class="eyebrow"><?= e($page['hero_kicker']) ?></span>
+          <h1><?= e($page['hero_title']) ?></h1>
+          <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
+          <?php foreach ($page['hero_paragraphs'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+          <div class="hero__actions">
+            <a class="button button--primary" href="#contact-form"><?= e($page['primary_cta_label']) ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Assessment Scope</span>
+          <h2>What This Is</h2>
+          <?php foreach ($page['what_this_is'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">Recovery Standard</span>
+          <h2>If recovery has not been tested, it is not considered reliable.</h2>
+          <?php render_feature_list($page['assessment_standard']); ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Review Areas</span>
+          <h2>What Is Checked</h2>
+        </div>
+        <?php render_card_grid($page['what_is_checked_cards']); ?>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container split">
+        <article class="card card--tall">
+          <span class="card__eyebrow">Assessment Output</span>
+          <h2>What You Get</h2>
+          <?php render_feature_list($page['what_you_get']); ?>
+        </article>
+        <article>
+          <span class="eyebrow">Plain-Language Review</span>
+          <?php foreach ($page['what_you_get_copy'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Next Actions</span>
+          <h2>What Happens After</h2>
+          <?php foreach ($page['what_happens_after'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">Follow-Through</span>
+          <?php render_feature_list($page['after_steps']); ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Limits</span>
+          <h2>What This Is Not</h2>
+          <?php foreach ($page['what_this_is_not_copy'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">Not Included</span>
+          <?php render_feature_list($page['what_this_is_not']); ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Before It Fails</span>
+          <h2>Why This Matters Before Failure</h2>
+        </div>
+        <?php render_card_grid($page['why_this_matters_cards']); ?>
+        <?php foreach ($page['why_this_matters_copy'] as $paragraph): ?>
+          <p><?= e($paragraph) ?></p>
+        <?php endforeach; ?>
+      </div>
+    </section>
+
+    <?php if (!empty($page['proof_block'])): ?>
+      <section class="section">
+        <div class="container split">
+          <article>
+            <span class="eyebrow"><?= e($page['proof_block']['eyebrow']) ?></span>
+            <h2><?= e($page['proof_block']['title']) ?></h2>
+            <?php foreach ($page['proof_block']['paragraphs'] as $paragraph): ?>
+              <p><?= e($paragraph) ?></p>
+            <?php endforeach; ?>
+          </article>
+          <article class="cta-box">
+            <span class="eyebrow"><?= e($page['proof_block']['card_eyebrow']) ?></span>
+            <h2><?= e($page['proof_block']['card_title']) ?></h2>
+            <p><?= e($page['proof_block']['card_copy']) ?></p>
+            <div class="cta-box__actions">
+              <a class="button button--ghost button--small" href="<?= e($page['proof_block']['href']) ?>"><?= e($page['proof_block']['label']) ?></a>
+              <?php if (!empty($page['proof_block']['secondary_href']) && !empty($page['proof_block']['secondary_label'])): ?>
+                <a class="button button--ghost button--small" href="<?= e($page['proof_block']['secondary_href']) ?>"><?= e($page['proof_block']['secondary_label']) ?></a>
+              <?php endif; ?>
+            </div>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <section class="section section--accent">
+      <div class="container">
+        <article class="cta-box">
+          <span class="eyebrow">Primary Conversion</span>
+          <h2>Start a Recovery Assessment</h2>
+          <p><?= e($page['cta_supporting_line']) ?></p>
+          <div class="cta-box__actions">
+            <a class="button button--primary" href="#contact-form">Start a Recovery Assessment</a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <?php if (!empty($page['submission_clarity'])): ?>
+      <section class="section">
+        <div class="container split">
+          <article>
+            <span class="eyebrow">Clarity</span>
+            <h2><?= e($page['submission_clarity']['title']) ?></h2>
+            <?php foreach ($page['submission_clarity']['points'] as $point): ?>
+              <p><?= e($point) ?></p>
+            <?php endforeach; ?>
+            <p><?= e($page['submission_clarity']['trust_line']) ?></p>
+          </article>
+          <article class="card card--tall">
+            <span class="card__eyebrow">Next Output</span>
+            <h2><?= e($page['submission_clarity']['what_you_get_title']) ?></h2>
+            <?php render_feature_list($page['submission_clarity']['what_you_get']); ?>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <section class="section section--accent">
+      <div class="container">
+        <?php render_contact_form('recovery-assessment', 'Start a Recovery Assessment', 'Find out what actually happens when your systems fail.'); ?>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Related Pages</span>
+          <h2>Where recovery work goes next.</h2>
+        </div>
+        <?php render_card_grid(service_cards($page['related_links']), 'card-grid--compact'); ?>
+      </div>
+    </section>
+    <?php
+}
+
 function render_not_found_page(array $page): void
 {
     ?>
@@ -1192,9 +1523,131 @@ function render_not_found_page(array $page): void
           <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
           <div class="hero__actions">
             <a class="button button--primary" href="<?= e(page_href('home')) ?>">Return Home</a>
-            <a class="button button--ghost" href="<?= e(page_href('contact')) ?>">Request a Risk Assessment</a>
+            <a class="button button--ghost" href="<?= e(page_href('security-risk-assessments')) ?>">Request a Recovery Assessment</a>
           </div>
         </div>
+      </div>
+    </section>
+    <?php
+}
+
+function render_case_study_page(array $page): void
+{
+    ?>
+    <section class="hero hero--interior">
+      <div class="container hero__layout hero__layout--single">
+        <div class="hero__content">
+          <span class="eyebrow"><?= e($page['hero_kicker']) ?></span>
+          <h1><?= e($page['hero_title']) ?></h1>
+          <p class="hero__lede"><?= e($page['hero_intro']) ?></p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="<?= e($page['cta']['href']) ?>"><?= e($page['cta']['label']) ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Context</span>
+          <h2>The Situation</h2>
+          <?php foreach ($page['situation'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">What Was Wrong</span>
+          <?php render_feature_list($page['what_was_wrong']); ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container two-up">
+        <article class="card card--tall">
+          <span class="card__eyebrow"><?= e($page['what_failed_eyebrow'] ?? 'Recovery Test') ?></span>
+          <h2><?= e($page['what_failed_title'] ?? 'What Failed') ?></h2>
+          <?php render_feature_list($page['what_failed']); ?>
+        </article>
+        <article class="card card--tall">
+          <span class="card__eyebrow">Corrective Work</span>
+          <h2>What Was Fixed</h2>
+          <?php render_feature_list($page['what_was_fixed']); ?>
+        </article>
+      </div>
+    </section>
+
+    <?php if (!empty($page['mid_cta'])): ?>
+      <section class="section">
+        <div class="container">
+          <article class="cta-box">
+            <span class="eyebrow"><?= e($page['mid_cta']['eyebrow']) ?></span>
+            <h2><?= e($page['mid_cta']['title']) ?></h2>
+            <p><?= e($page['mid_cta']['copy']) ?></p>
+            <div class="cta-box__actions">
+              <a class="button button--primary" href="<?= e($page['mid_cta']['href']) ?>"><?= e($page['mid_cta']['label']) ?></a>
+            </div>
+          </article>
+        </div>
+      </section>
+    <?php endif; ?>
+
+    <section class="section">
+      <div class="container split">
+        <article>
+          <span class="eyebrow">Business Impact</span>
+          <h2>Why It Mattered</h2>
+          <?php foreach ($page['why_it_mattered'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+        <article class="cta-box">
+          <span class="eyebrow">Outcome</span>
+          <h2><?= e($page['outcome_title']) ?></h2>
+          <?php foreach ($page['outcome'] as $paragraph): ?>
+            <p><?= e($paragraph) ?></p>
+          <?php endforeach; ?>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">What To Check</span>
+          <h2>What Other Small Businesses Should Check</h2>
+        </div>
+        <?php render_card_grid($page['check_cards']); ?>
+      </div>
+    </section>
+
+    <section class="section section--accent">
+      <div class="container">
+        <article class="cta-box">
+          <span class="eyebrow">Next Step</span>
+          <h2><?= e($page['cta']['title']) ?></h2>
+          <p><?= e($page['cta']['copy']) ?></p>
+          <div class="cta-box__actions">
+            <a class="button button--primary" href="<?= e($page['cta']['href']) ?>"><?= e($page['cta']['label']) ?></a>
+            <?php if (!empty($page['secondary_cta']['href']) && !empty($page['secondary_cta']['label'])): ?>
+              <a class="button button--ghost button--small" href="<?= e($page['secondary_cta']['href']) ?>"><?= e($page['secondary_cta']['label']) ?></a>
+            <?php endif; ?>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Related Pages</span>
+          <h2>Keep the next step tied to recovery.</h2>
+        </div>
+        <?php render_card_grid(service_cards($page['related_links']), 'card-grid--compact'); ?>
       </div>
     </section>
     <?php
@@ -1232,6 +1685,12 @@ function render_site_page(array $page): void
             break;
         case 'faq':
             render_faq_page($page);
+            break;
+        case 'recovery-assessment':
+            render_recovery_assessment_page($page);
+            break;
+        case 'case-study':
+            render_case_study_page($page);
             break;
         case 'legal':
             render_legal_page($page);

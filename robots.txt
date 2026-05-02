@@ -11,4 +11,5 @@ Disallow: /landing/forms/
 Disallow: /landing/config/
 Disallow: /landing/reports/report-access.php
 Disallow: /assets/contact-handler.php
+Disallow: /waiting_pages/
 Sitemap: https://baldeaglenetworkservices.com/sitemap.xml
