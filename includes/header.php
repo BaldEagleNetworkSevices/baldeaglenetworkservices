@@ -42,6 +42,10 @@ $navItems = [
     <?= $page['extra_head'] . PHP_EOL ?>
   <?php endif; ?>
   <?php render_schemas($page); ?>
+  <?php if (empty($page['extra_head']) || !is_string($page['extra_head']) || !str_contains($page['extra_head'], 'https://platform.linkedin.com/badges/js/' . 'profile.js')): ?>
+    <!-- LinkedIn Badge Script Added -->
+    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
+  <?php endif; ?>
 </head>
 <body class="<?= e($page['body_class']) ?>">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -74,6 +78,8 @@ $navItems = [
               <span></span>
             </span>
           </button>
+          <!-- LinkedIn Badge Added -->
+          <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="baldeaglenetworkservices" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/baldeaglenetworkservices?trk=profile-badge">Steve Carlsen</a></div>
         </div>
       </div>
     </header>
