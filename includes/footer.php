@@ -10,19 +10,22 @@ $config = site_config();
           <p class="footer-copy">Recovery-first IT for small businesses that need tested backups, verified restores, and direct accountability when systems fail.</p>
         </div>
         <div>
-          <p class="footer-title">Recovery Services</p>
+          <p class="footer-title">Services</p>
           <ul class="footer-list">
+            <li><a href="<?= e(page_href('services')) ?>">Services</a></li>
+            <li><a href="<?= e(page_href('network-security')) ?>">Network Security</a></li>
+            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Backup &amp; Disaster Recovery</a></li>
+            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">IT Continuity Support</a></li>
+            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Email &amp; Data Protection</a></li>
             <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Recovery Assessment</a></li>
-            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Backup &amp; Recovery</a></li>
-            <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">Monthly Verification</a></li>
-            <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Recovery Verification</a></li>
-            <li><a href="<?= e(page_href('network-security')) ?>">Security Hardening</a></li>
+            <li><a href="<?= e(page_href('compliance-readiness')) ?>">Compliance Readiness</a></li>
           </ul>
         </div>
         <div>
-          <p class="footer-title">Recovery Example</p>
+          <p class="footer-title">Proof</p>
           <ul class="footer-list">
             <li><a href="<?= e(page_href('case-study-backup-recovery-failure')) ?>">Backup Existed. Recovery Failed.</a></li>
+            <li><a href="<?= e(page_href('case-study-security-recovery-failure')) ?>">Security Exposure Compromised Recovery</a></li>
             <li><a href="<?= e(page_href('about')) ?>">About</a></li>
             <li><a href="<?= e(page_href('faq')) ?>">FAQ</a></li>
             <li><a href="<?= e(page_href('contact')) ?>">Contact</a></li>

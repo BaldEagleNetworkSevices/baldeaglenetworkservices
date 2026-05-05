@@ -6,6 +6,7 @@ ensure_session_started();
 $page = normalize_page($page ?? []);
 $config = site_config();
 $ogImage = $page['og_image'] ?? absolute_url(asset_path('img/og-default.jpg'));
+$linkedinProfileUrl = 'https://www.linkedin.com/in/baldeaglenetworkservices?trk=profile-badge';
 $navItems = [
     'services' => 'Services',
     'case-study-backup-recovery-failure' => 'Case Study',
@@ -42,10 +43,6 @@ $navItems = [
     <?= $page['extra_head'] . PHP_EOL ?>
   <?php endif; ?>
   <?php render_schemas($page); ?>
-  <?php if (empty($page['extra_head']) || !is_string($page['extra_head']) || !str_contains($page['extra_head'], 'https://platform.linkedin.com/badges/js/' . 'profile.js')): ?>
-    <!-- LinkedIn Badge Script Added -->
-    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
-  <?php endif; ?>
 </head>
 <body class="<?= e($page['body_class']) ?>">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -53,10 +50,12 @@ $navItems = [
     <header class="site-header" data-site-header>
       <div class="container container--header header-bar">
         <a class="brand" href="<?= e(page_href('home')) ?>" aria-label="<?= e($config['site_name']) ?> home">
-          <span class="brand__mark" aria-hidden="true">BE</span>
+          <picture class="brand__mark">
+            <source srcset="<?= e(asset_url('images/logo-primary.webp')) ?>" type="image/webp">
+            <img class="brand__logo" src="<?= e(asset_url('images/logo-primary.png')) ?>" width="288" height="192" alt="Bald Eagle Network Services logo" fetchpriority="high">
+          </picture>
           <span class="brand__text">
             <strong><?= e($config['site_name']) ?></strong>
-            <small>Recovery for Salt Lake small businesses</small>
           </span>
         </a>
 
@@ -70,6 +69,11 @@ $navItems = [
 
         <div class="header-actions">
           <a class="button button--primary button--small desktop-cta" href="<?= e(recovery_assessment_href('risk-assessment', 'contact-form')) ?>">Recovery Assessment</a>
+          <a class="linkedin-icon" href="<?= e($linkedinProfileUrl) ?>" aria-label="Steve Carlsen on LinkedIn" title="Steve Carlsen on LinkedIn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6.94 8.98H3.75v10.27h3.19V8.98ZM5.35 7.58c1.02 0 1.65-.68 1.65-1.52-.02-.86-.63-1.52-1.63-1.52s-1.65.66-1.65 1.52c0 .84.63 1.52 1.61 1.52h.02Zm4.08 11.67h3.19v-5.74c0-.31.02-.61.11-.83.23-.61.75-1.24 1.63-1.24 1.15 0 1.61.88 1.61 2.17v5.64h3.19v-6.01c0-3.22-1.72-4.72-4.01-4.72-1.85 0-2.68 1.02-3.14 1.74h.02V8.98h-3.2c.04.96 0 10.27 0 10.27h3.2Z" />
+            </svg>
+          </a>
           <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-nav-toggle>
             <span class="nav-toggle__label">Menu</span>
             <span class="nav-toggle__bars" aria-hidden="true">
@@ -78,8 +82,6 @@ $navItems = [
               <span></span>
             </span>
           </button>
-          <!-- LinkedIn Badge Added -->
-          <div class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="baldeaglenetworkservices" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/baldeaglenetworkservices?trk=profile-badge">Steve Carlsen</a></div>
         </div>
       </div>
     </header>
