@@ -50,20 +50,20 @@ function page_catalog(): array
     $pages = [
         'home' => ['path' => '/', 'label' => 'Home'],
         'services' => ['path' => '/services', 'label' => 'Services'],
-        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly Backup Verification'],
+        'plans' => ['path' => '/monthly-it-support-plans', 'label' => 'IT Continuity Support'],
         'about' => ['path' => '/about', 'label' => 'About'],
         'case-study-backup-recovery-failure' => ['path' => '/case-study-backup-recovery-failure', 'label' => 'Case Study'],
         'case-study-security-recovery-failure' => ['path' => '/case-study-security-recovery-failure', 'label' => 'Security Recovery Case Study'],
         'service-area' => ['path' => '/service-area', 'label' => 'Service Area'],
-        'contact' => ['path' => '/contact', 'label' => 'Request Recovery Assessment'],
+        'contact' => ['path' => '/contact', 'label' => 'Contact'],
         'faq' => ['path' => '/faq', 'label' => 'FAQ'],
         'privacy-policy' => ['path' => '/privacy-policy', 'label' => 'Privacy Policy'],
         'terms' => ['path' => '/terms', 'label' => 'Terms'],
-        'network-security' => ['path' => '/network-security', 'label' => 'Security Hardening'],
+        'network-security' => ['path' => '/network-security', 'label' => 'Network Security'],
         'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery', 'label' => 'Backup & Disaster Recovery'],
         'security-risk-assessments' => ['path' => '/recovery-assessment', 'label' => 'Recovery Assessment'],
         'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Continuity & Control Review'],
-        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'Monthly Backup and Recovery Verification'],
+        'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'IT Continuity Support'],
     ];
 
     return $pages;
@@ -379,12 +379,16 @@ function render_schemas(array $page): void
 function navigation_groups(): array
 {
     return [
-        'Core Services' => [
-            'backup-disaster-recovery',
-            'security-risk-assessments',
-            'monthly-it-support-plans',
+        'Services' => [
+            'services',
             'network-security',
+            'backup-disaster-recovery',
+            'monthly-it-support-plans',
+            'security-risk-assessments',
+        ],
+        'Proof' => [
             'case-study-backup-recovery-failure',
+            'case-study-security-recovery-failure',
         ],
         'Company' => [
             'about',
@@ -980,18 +984,30 @@ function render_services_page(array $page): void
     <section class="section">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">Service Stack</span>
-          <h2>What happens after the Recovery Assessment.</h2>
+          <span class="eyebrow">Service Areas</span>
+          <h2>Choose the service path based on what needs to be protected, secured, or recovered.</h2>
         </div>
         <?php render_card_grid($page['service_cards']); ?>
       </div>
     </section>
 
+    <?php if (!empty($page['proof_cards'])): ?>
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Proof</span>
+            <h2>Examples that show why service work stays tied to recovery.</h2>
+          </div>
+          <?php render_card_grid($page['proof_cards'], 'card-grid--compact'); ?>
+        </div>
+      </section>
+    <?php endif; ?>
+
     <section class="section section--alt">
       <div class="container split">
         <div>
-          <span class="eyebrow">How Engagements Start</span>
-          <h2>Every engagement starts with test findings, then moves into the specific fix path your business actually needs.</h2>
+          <span class="eyebrow">How To Use This Hub</span>
+          <h2>Start with the risk you can see, then route the work into the service path that fits.</h2>
         </div>
         <div class="card card--tall">
           <?php render_feature_list($page['approach']); ?>
@@ -1004,6 +1020,25 @@ function render_services_page(array $page): void
         </div>
       </div>
     </section>
+
+    <?php if (!empty($page['faq_items'])): ?>
+      <section class="section">
+        <div class="container split">
+          <div>
+            <span class="eyebrow">Service FAQ</span>
+            <h2>Common questions about recovery, email, cloud files, and backup readiness.</h2>
+          </div>
+          <div class="faq-list">
+            <?php foreach ($page['faq_items'] as $item): ?>
+              <details class="faq-item">
+                <summary><?= e($item['question']) ?></summary>
+                <p><?= e($item['answer']) ?></p>
+              </details>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <?php if (!empty($page['final_cta'])): ?>
       <section class="section">
