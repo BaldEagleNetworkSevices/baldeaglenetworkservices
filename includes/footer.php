@@ -16,7 +16,7 @@ $config = site_config();
             <li><a href="<?= e(page_href('network-security')) ?>">Network Security</a></li>
             <li><a href="<?= e(page_href('backup-disaster-recovery')) ?>">Backup &amp; Disaster Recovery</a></li>
             <li><a href="<?= e(page_href('monthly-it-support-plans')) ?>">IT Continuity Support</a></li>
-            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Email &amp; Data Protection</a></li>
+            <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Email &amp; Data Recovery</a></li>
             <li><a href="<?= e(page_href('security-risk-assessments')) ?>">Recovery Assessment</a></li>
             <li><a href="<?= e(page_href('compliance-readiness')) ?>">Compliance Readiness</a></li>
           </ul>
