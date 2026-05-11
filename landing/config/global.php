@@ -98,7 +98,7 @@ function landing_global_config(): array
 
     $config = [
         'brand_name' => 'Bald Eagle Network Services',
-        'default_host' => landing_env('LANDING_DEFAULT_HOST', 'www.baldeaglenetworkservices.com'),
+        'default_host' => landing_env('LANDING_DEFAULT_HOST', 'baldeaglenetworkservices.com'),
         'site_url' => landing_env('LANDING_SITE_URL', ''),
         'currency' => 'USD',
         'storage_dir' => $projectRoot . '/storage/landing',

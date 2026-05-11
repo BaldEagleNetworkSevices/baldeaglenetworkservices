@@ -61,6 +61,8 @@ function page_catalog(): array
         'terms' => ['path' => '/terms', 'label' => 'Terms'],
         'network-security' => ['path' => '/network-security', 'label' => 'Network Security'],
         'backup-disaster-recovery' => ['path' => '/backup-disaster-recovery', 'label' => 'Backup & Disaster Recovery'],
+        'managed-it-services' => ['path' => '/managed-it-services', 'label' => 'Recovery Assurance'],
+        'microsoft-365-services' => ['path' => '/microsoft-365-services', 'label' => 'Identity & Access Review'],
         'security-risk-assessments' => ['path' => '/recovery-assessment', 'label' => 'Recovery Assessment'],
         'compliance-readiness' => ['path' => '/compliance-readiness', 'label' => 'Continuity & Control Review'],
         'monthly-it-support-plans' => ['path' => '/monthly-it-support-plans', 'label' => 'IT Continuity Support'],
